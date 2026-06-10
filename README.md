@@ -1,8 +1,8 @@
 # 🚕 End-to-End Ride-Hailing Data Pipeline
 
-## 🏗️ Architecture
+## 🏗️ Overview
 
-![Architecture Diagram](docs/images/architecture.png)
+![Overview Diagram](docs/images/architecture.png)
 
 ---
 

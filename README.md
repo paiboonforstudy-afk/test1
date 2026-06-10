@@ -1,62 +1,67 @@
-# End-to-End Ride-Hailing Data Pipeline — Thailand Market
+# 🚕 End-to-End Ride-Hailing Data Pipeline — Thailand Market
 
-A production-style data pipeline that simulates a ride-hailing platform operating across all 77 Thai provinces. Built to demonstrate real-world data engineering — from data generation to cloud ingestion, transformation, and business intelligence reporting.
+![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
+![Azure](https://img.shields.io/badge/Azure-Data%20Lake%20%7C%20Event%20Hub-0078D4?logo=microsoftazure)
+![Databricks](https://img.shields.io/badge/Databricks-Delta%20Live%20Tables-FF3621?logo=databricks)
+![PowerBI](https://img.shields.io/badge/Power%20BI-Dashboard-F2C811?logo=powerbi)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-> **Scale:** 30,000+ ride records · 77 provinces · 6 ride options · 5 payment methods
+A production-style, end-to-end data pipeline that simulates a ride-hailing platform operating across all 77 Thai provinces — from synthetic data generation to cloud ingestion, transformation, and interactive business intelligence reporting.
+
+> **Scale:** 30,000+ ride records · 77 provinces · 6 ride options · 5 payment methods · 500 drivers · 5,000 customers
 
 ---
 
-## Architecture
+## 📋 Table of Contents
+
+- [Architecture](#-architecture)
+- [Dashboard](#-dashboard)
+- [Data Generator](#-data-generator)
+- [Data Pipeline](#-data-pipeline--bronze--silver--gold)
+- [Data Structure](#-data-structure)
+- [Project Structure](#-project-structure)
+- [Skills Demonstrated](#-skills-demonstrated)
+- [Setup](#-setup)
+- [References](#-references)
+
+---
+
+## 🏗️ Architecture
 
 ![Architecture Diagram](docs/images/architecture.png)
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Data Generator                           │
-│   Python · Faker · Nominatim · Real Thai Coordinates            │
-└──────────────────┬──────────────────────┬───────────────────────┘
-                   │                      │
-         Historical Batch            Real-time Stream
-         CSV / JSON files            Azure Event Hub
-                   │                      │
-                   └──────────┬───────────┘
-                              │
-             ┌────────────────▼─────────────────┐
-             │   Azure Data Lake Storage Gen2   │
-             └────────────────┬─────────────────┘
-                              │
-             ┌────────────────▼─────────────────┐
-             │         Databricks               │
-             │                                  │
-             │  Bronze ──► Silver ──► Gold      │
-             │  Raw       Cleaned    Star Schema │
-             └────────────────┬─────────────────┘
-                              │
-             ┌────────────────▼─────────────────┐
-             │         Power BI Dashboard       │
-             │  Growth · Cancellation ·         │
-             │  Geographic · Ride Option        │
-             └──────────────────────────────────┘
-```
+Three data flows feed into the pipeline:
+
+| Flow | Description |
+|---|---|
+| **Historical batch** | CSV/JSON files uploaded to Azure Data Lake Storage Gen2 |
+| **Mapping data** | Province, ride option, and payment method JSON files uploaded to ADLS |
+| **Real-time stream** | Live ride records streamed to Azure Event Hub |
+
+All three flows converge in **Azure Databricks** where data is processed through the Bronze → Silver → Gold medallion architecture before being served to **Power BI**.
 
 ---
 
-## Dashboard Preview
+## 📊 Dashboard
 
-![Power BI Dashboard](docs/images/dashboard_overview.png)
+![Dashboard Overview](docs/images/dashboard_growth.png)
+
+4-page interactive dashboard built on the Gold Layer star schema.
 
 | Page | Business Question |
 |---|---|
-| Growth | Is the business heading in the right direction? |
-| Cancellation & Service Quality | Why are rides failing and who is responsible? |
-| Geographic Performance | Where should we invest or expand? |
-| Ride Option & Revenue | Which products make money and which need attention? |
+| 📈 **Growth** | Is the business heading in the right direction? |
+| ❌ **Cancellation & Service Quality** | Why are rides failing and who is responsible? |
+| 🗺️ **Geographic Performance** | Where should we invest or expand? |
+| 💰 **Ride Option & Revenue** | Which products make money and which need attention? |
+
+![Dashboard Geographic](docs/images/dashboard_geographic.png)
 
 ---
 
-## Data Generator
+## ⚙️ Data Generator
 
-The generator creates realistic ride records using **real geographic coordinates** across Thailand — not random lat/lon values. It uses a self-hosted **Nominatim** instance (OpenStreetMap) running in Docker to reverse-geocode coordinates and validate that each point is on land, inside Thailand, and within the correct province.
+The generator creates realistic ride records using **real Thai geographic coordinates** — not random lat/lon values. It uses a self-hosted **Nominatim** instance (OpenStreetMap) running in Docker to validate that every pickup and dropoff point is on land, inside Thailand, and within the correct province.
 
 ### How location generation works
 
@@ -67,17 +72,15 @@ The generator creates realistic ride records using **real geographic coordinates
 2. Sample a random coordinate within the bounding box
 
 3. Reverse geocode the coordinate
-         → check: is it on land?
-         → check: is it inside Thailand?
-         → check: does province_id match?
+         → Is it on land?
+         → Is it inside Thailand?
+         → Does the province match?
 
-4. If all checks pass → use this coordinate
-   If any check fails → retry (up to 500 attempts)
+4. Pass → use this coordinate
+   Fail → retry (up to 500 attempts)
 ```
 
-This ensures every pickup and dropoff location in the dataset is a real, valid location inside the correct Thai province.
-
-### Realistic simulation parameters
+### Simulation parameters
 
 | Parameter | Value | Detail |
 |---|---|---|
@@ -85,14 +88,12 @@ This ensures every pickup and dropoff location in the dataset is a real, valid l
 | Hot province selection chance | 80% | Simulates real urban demand concentration |
 | Same-province dropoff chance | 70% | Most rides stay within one province |
 | Completion rate | 80% | 20% of rides are cancelled |
-| Surge hours | 7–9 AM, 5–8 PM | Surge multiplier 1.2x–1.5x |
+| Surge hours | 7–9 AM, 5–8 PM | Multiplier 1.2x–1.5x |
 | Tip chance | 20% | 5–20% of subtotal |
 | Driver pool | 500 drivers | Reused across rides to simulate real drivers |
-| Customer pool | 5,000 customers | Reused across rides to simulate repeat users |
+| Customer pool | 5,000 customers | Reused to simulate repeat users |
 
 ### Ride option distance suitability
-
-Each ride option is only assigned to appropriate trip distances:
 
 | Ride Option | Short (0–5km) | Medium (5–15km) | Suburban (15–80km) | Regional (80–250km) | Cross-country |
 |---|---|---|---|---|---|
@@ -103,42 +104,49 @@ Each ride option is only assigned to appropriate trip distances:
 | SUV | ❌ | ✅ | ✅ | ✅ | ✅ |
 | Van | ❌ | ❌ | ✅ | ✅ | ✅ |
 
-### Generator commands
+### Commands
 
 ```bash
-# Print 5 records to terminal (for testing)
+# Print 5 records to terminal
 python data_generator.py generate --count 5
 
-# Generate 25,000 historical records and save to CSV
+# Generate historical batch and save to CSV
 python data_generator.py historical --count 25000 --format csv --duration 2026-01-01:2026-02-01
 
 # Stream live records to Azure Event Hub
 python data_generator.py eventhub --mode stream --interval 0.5
+
+# Upload files to Azure Data Lake Storage
+python upload_historical.py --from-date 20260101 --to-date 20260601
 ```
 
 ---
 
-## Data Pipeline — Bronze → Silver → Gold
+## 🔄 Data Pipeline — Bronze → Silver → Gold
 
-### Bronze — Raw Ingestion
+### 🥉 Bronze — Raw Ingestion
 
 | Script | Source | Target | Description |
 |---|---|---|---|
 | `ingest_events.py` | Azure Event Hub | `bronze.eh_rides` | Real-time ride records via Kafka |
-| `ingest_historical.py` | ADLS CSV files | `bronze.historical_rides` | Batch historical rides with manifest deduplication |
-| `ingest_mapping.py` | ADLS JSON files | `bronze.map_*` | Mapping tables (provinces, ride options, etc.) |
+| `ingest_historical.py` | ADLS CSV/JSON | `bronze.historical_rides` | Batch rides with manifest-based deduplication |
+| `ingest_mapping.py` | ADLS JSON | `bronze.map_*` | Provinces, ride options, payment methods |
 
-### Silver — Enrichment & Privacy
+### 🥈 Silver — Enrichment & Privacy
 
 | Script | Source | Target | Transformations |
 |---|---|---|---|
-| `rides_enriched.py` | `bronze.eh_rides` + `bronze.historical_rides` | `silver.rides_enriched` | Cast timestamps · Hash PII (SHA-256) |
+| `rides_enriched.py` | `bronze.eh_rides` + `bronze.historical_rides` | `silver.rides_enriched` | Cast timestamps · Hash PII with SHA-256 |
 
 **PII fields hashed:** `booker_name`, `booker_email`, `booker_phone`, `driver_name`, `driver_phone`, `driver_license`, `vehicle_license_plate`
 
-### Gold — Star Schema
+### 🥇 Gold — Star Schema
 
 ![Star Schema](docs/images/star_schema.png)
+
+---
+
+## 📐 Data Structure
 
 **Dimension tables:**
 
@@ -159,12 +167,12 @@ python data_generator.py eventhub --mode stream --interval 0.5
 |---|---|---|
 | `fact_rides` | One row per ride | total_fare, travel_distance_km, duration_minutes, surge_multiplier, tip_amount, rating, driver_rating |
 
-> **SCD Type 1** — always reflects the latest known value, no history kept.
-> **SCD Type 2** — keeps a full history of changes over time. Old rides always link back to the correct version of the ride option or payment method at the time of the ride.
+> **SCD Type 1** — always reflects the latest value, no history kept.
+> **SCD Type 2** — keeps a full history of changes. Old rides always link to the correct version of the ride option or payment method at the time of booking.
 
 ---
 
-## Project Structure
+## 🗂️ Project Structure
 
 ```
 ride-hailing-project/
@@ -172,19 +180,16 @@ ride-hailing-project/
 │   ├── pipeline-bronze/
 │   │   ├── ingest_historical.py
 │   │   ├── ingest_mapping.py
-│   │   └── pipeline-bronze-ingestion/
-│   │       └── transformations/
-│   │           └── ingest_events.py
+│   │   └── pipeline-bronze-ingestion/transformations/
+│   │       └── ingest_events.py
 │   ├── pipeline-silver/
-│   │   └── pipeline-silver-enriched/
-│   │       └── transformations/
-│   │           └── rides_enriched.py
+│   │   └── pipeline-silver-enriched/transformations/
+│   │       └── rides_enriched.py
 │   └── pipeline-gold/
-│       └── pipeline-gold-star-schema/
-│           └── transformations/
-│               └── star_schema.py
+│       └── pipeline-gold-star-schema/transformations/
+│           └── star_schema.py
 ├── generator/                     # Data generation logic
-│   ├── core.py                    # Main ride record simulation
+│   ├── core.py                    # Ride record simulation
 │   ├── geocoding.py               # Nominatim location generator
 │   ├── config.py                  # Probabilities and parameters
 │   ├── pool.py                    # Driver and customer pools
@@ -197,10 +202,12 @@ ride-hailing-project/
 │   └── storage.py                 # Paths and Azure settings
 ├── data/
 │   ├── mapping_data/              # Province, ride option, payment method JSON
-│   ├── historical_data/           # Generated CSV / JSON ride files
+│   ├── historical_data/           # Generated CSV/JSON ride files
 │   └── pools/                     # Driver and customer pool files
 ├── powerbi/
 │   └── powerbi-dashboard.pbix    # Power BI dashboard
+├── docs/
+│   └── images/                   # Architecture and dashboard screenshots
 ├── data_generator.py              # CLI entry point
 ├── upload_historical.py           # Upload files to ADLS
 ├── generate_pools.py              # Pre-generate driver/customer pools
@@ -211,7 +218,25 @@ ride-hailing-project/
 
 ---
 
-## Setup
+## 🎯 Skills Demonstrated
+
+| Skill | Detail |
+|---|---|
+| **Data Engineering** | End-to-end pipeline from raw ingestion to reporting |
+| **Cloud (Azure)** | ADLS Gen2, Event Hub, Databricks, Unity Catalog |
+| **Streaming** | Real-time ingestion via Azure Event Hub + Kafka |
+| **Batch Processing** | Historical CSV/JSON ingestion with deduplication |
+| **Delta Lake** | Bronze/Silver/Gold medallion architecture |
+| **Delta Live Tables** | Declarative pipeline with CDC and SCD support |
+| **Star Schema** | Dimensional modeling with SCD Type 1 and Type 2 |
+| **PII Protection** | SHA-256 hashing of personal data in Silver layer |
+| **Python** | Data generation, geocoding, Azure SDK, CLI tooling |
+| **Power BI** | Multi-page dashboard with DAX measures and drill-through |
+| **Geospatial** | Real coordinate generation using Nominatim + OpenStreetMap |
+
+---
+
+## 🚀 Setup
 
 **1. Clone the repository**
 ```bash
@@ -254,6 +279,6 @@ python upload_historical.py
 
 ---
 
-## References
+## 📚 References
 
 See [REFERENCES.md](REFERENCES.md) for all external documentation and resources used in this project.

@@ -1,5 +1,11 @@
 # 🚕 End-to-End Ride-Hailing Data Pipeline
 
+## 🏗️ Architecture
+
+![Architecture Diagram](docs/images/architecture.png)
+
+---
+
 ## 💡 Why I Built This
 
 I have been interested in data engineering for some time. In my previous work, I often extracted, validated, cleaned, and loaded data manually, repeating the same process whenever new data became available.While this approach was effective for smaller workloads, it was time-consuming, difficult to maintain, and not easily scalable. 
@@ -21,10 +27,6 @@ To better understand how modern data platforms automate these processes, I wante
 - [References](#-references)
 
 ---
-
-## 🏗️ Architecture
-
-![Architecture Diagram](docs/images/architecture.png)
 
 Three data flows feed into the pipeline:
 

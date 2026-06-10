@@ -24,6 +24,8 @@ class RuntimeConfig:
         num_records (int):              Number of ride records to generate per run.
         start_date (datetime | None):   Start of the date range for generated timestamps. Used in historical mode.
         end_date (datetime | None):     End of the date range for generated timestamps. Used in historical mode.
+        driver_pool_size (int):         The total number of unique drivers to create.
+        customer_pool_size (int):       The total number of unique customers to create.
     """
     debug: bool = True
     completed_rate: float = 0.80

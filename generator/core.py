@@ -38,7 +38,7 @@ from generator.config import (
     RuntimeConfig,
 )
 from generator.geocoding import generate_location
-from generator.pool import Customer, Driver
+from generator.pool import Customer, Driver, generate_license_plate
 from generator.loader import (
     CANCELLED_STATUS_ID,
     COMPLETED_STATUS_ID,
@@ -52,8 +52,6 @@ from generator.loader import (
 )
 
 fake = Faker("th_TH")
-
-_THAI_LETTERS = "กขคฆงจฉชซญฎฏฐทธนบปผพฟภมยรลวศษสหฬอฮ"
 
 
 # --- Data Structures ---
@@ -377,26 +375,6 @@ def generate_ride_rating(driver_rating: float) -> int:
     return max(1, min(5, int(driver_rating + random.uniform(-RATING_NOISE, RATING_NOISE))))
 
 
-# --- License plate string Generation ---
-
-def generate_license_plate() -> str:
-    """
-    Generates a simulated Thai license plate string.
-
-    The function randomly produces one of two common Thai license plate formats:
-        - With a leading digit:     '3กข 1234'
-        - Without a leading digit:  'กข 1234'
-
-    Returns:
-        str: The generated Thai license plate string.
-    """
-    letters = "".join(random.choices(_THAI_LETTERS, k=2))
-    suffix_num = random.randint(1, 9999)
-    if random.random() < 0.5:
-        return f"{random.randint(1, 9)}{letters} {suffix_num}"
-    return f"{letters} {suffix_num}"
-
-
 # --- Ride Record Generation ---
 
 def _build_cancelled_fields() -> dict:
@@ -520,10 +498,12 @@ def generate_ride_record(
         random.choice(driver_pool)
         if driver_pool
         else Driver(
-            driver_id=      str(uuid.uuid4()),
-            driver_name=    fake.name(),
-            driver_phone=   fake.phone_number(),
-            driver_license= fake.bothify("########"),
+            driver_id=             str(uuid.uuid4()),
+            driver_name=           fake.name(),
+            driver_phone=          fake.phone_number(),
+            driver_license=        fake.bothify("########"),
+            vehicle_id=            str(uuid.uuid4()),
+            vehicle_license_plate= generate_license_plate(),
         )
     )
 
@@ -550,7 +530,7 @@ def generate_ride_record(
         "ride_id":               ride_id,
         "booker_id":             customer.booker_id,
         "driver_id":             driver.driver_id,
-        "vehicle_id":            str(uuid.uuid4()),
+        "vehicle_id":            driver.vehicle_id,
 
         "ride_status_id":        ride_status_id,
         "pickup_city_id":        pickup_province["province_id"],
@@ -573,7 +553,7 @@ def generate_ride_record(
         "driver_name":           driver.driver_name,
         "driver_phone":          driver.driver_phone,
         "driver_license":        driver.driver_license,
-        "vehicle_license_plate": generate_license_plate(),
+        "vehicle_license_plate": driver.vehicle_license_plate,
 
         **trip_fields,
     }

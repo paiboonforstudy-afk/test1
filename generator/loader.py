@@ -9,7 +9,7 @@ can be accessed from a single source.
 
 import json
 
-from config.storage import MAPPING_DATA_DIR
+from settings.storage import MAPPING_DATA_DIR
 from generator.config import HOT_PROVINCE_IDS, RIDE_OPTION_CONFIG
 
 

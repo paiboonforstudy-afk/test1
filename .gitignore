@@ -9,9 +9,8 @@ __pycache__/
 .env
 
 archieve
-databricks
 
 .claude
 
-data/historical_data
-data/pools
+# Power BI (may contain cached credentials)
+powerbi/

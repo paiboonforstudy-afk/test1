@@ -1,46 +1,82 @@
 """
-Driver and customer pool generation for the ride data generator.
+Creates and loads lists of drivers and customers for the ride simulator.
 
-Pre-generates fixed pools of reusable drivers and customers
-before the main generation loop. This enables realistic per-entity
-analytics such as driver utilization, customer retention,
-repeat ride rate, and lifetime value.
+This module creating a set of drivers and customers before the simulation starts,
+we make sure the same people appear in multiple rides. This makes the final data
+look more realistic when looking at how often people use the app.
 
-Call build_driver_pool() and build_customer_pool() once per
-generation session, then pass the pools into generate_ride_record().
+Usage:
+    from generator.pool import build_driver_pool, build_customer_pool
+
+    driver_pool   = build_driver_pool(size=500)
+    customer_pool = build_customer_pool(size=5000)
+
+    # Pass both pools into generate_ride_record() for reuse across rides.
+    record = generate_ride_record(config, driver_pool, customer_pool)
+
+To reuse the same pools across multiple runs, use generate_pools.py to save
+them to the files and load_driver_pool() / load_customer_pool() to reload them.
 """
 
 import json
+import random
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
 
 from faker import Faker
 
+# Setup the fake data generator for the Thai language
 fake = Faker("th_TH")
+
+# Thai letters used on vehicle license plates
+_THAI_LETTERS = "กขคฆงจฉชซญฎฏฐทธนบปผพฟภมยรลวศษสหฬอฮ"
+
+
+def generate_license_plate() -> str:
+    """Generates a simulated Thai license plate.
+
+    Returns:
+        str: A random Thai license plate string.
+    """
+    letters = "".join(random.choices(_THAI_LETTERS, k=2))
+    suffix_num = random.randint(1, 9999)
+    if random.random() < 0.5:
+        return f"{random.randint(1, 9)}{letters} {suffix_num}"
+    return f"{letters} {suffix_num}"
 
 
 @dataclass(frozen=True)
 class Driver:
     """
-    A reusable driver entity sampled per ride.
+    Holds information for a single driver.
 
-    frozen=True ensures pool entries are immutable
-    and cannot be accidentally modified during generation.
+    Attributes:
+        driver_id (str):                A unique text ID for the driver.
+        driver_name (str):              The driver's full name in Thai.
+        driver_phone (str):             The driver's phone number.
+        driver_license (str):           A random 8-digit license number.
+        vehicle_id (str):               A unique text ID for the car.
+        vehicle_license_plate (str):    The car's Thai license plate.
     """
-    driver_id:      str
-    driver_name:    str
-    driver_phone:   str
-    driver_license: str
+    driver_id:             str
+    driver_name:           str
+    driver_phone:          str
+    driver_license:        str
+    vehicle_id:            str
+    vehicle_license_plate: str
 
 
 @dataclass(frozen=True)
 class Customer:
     """
-    A reusable customer (booker) entity sampled per ride.
+    Holds information for a single customer.
 
-    frozen=True ensures pool entries are immutable
-    and cannot be accidentally modified during generation.
+    Attributes:
+        booker_id (str):    A unique text ID for the customer.
+        booker_name (str):  The customer's full name in Thai.
+        booker_email (str): The customer's email address.
+        booker_phone (str): The customer's phone number.
     """
     booker_id:    str
     booker_name:  str
@@ -50,42 +86,41 @@ class Customer:
 
 def build_driver_pool(size: int) -> list[Driver]:
     """
-    Pre-generates a fixed pool of reusable drivers.
-
-    Call once per generation session before the main loop.
-    For 100,000 rides with size=1000, each driver averages ~100 rides —
-    sufficient for driver utilization and performance analytics.
+    Creates a new list of drivers.
 
     Args:
-        size (int): Number of unique drivers to generate.
+        size (int): The number of drivers to create.
 
     Returns:
-        list[Driver]: Fixed pool sampled randomly per ride.
+        list[Driver]: A list of newly created drivers.
     """
     pool = []
     for _ in range(size):
-        pool.append(Driver(
-            driver_id=      str(uuid.uuid4()),
-            driver_name=    fake.name(),
-            driver_phone=   fake.phone_number(),
-            driver_license= fake.bothify("########"),
-        ))
+        pool.append(
+            Driver(
+                driver_id=             str(uuid.uuid4()),
+                driver_name=           fake.name(),
+                driver_phone=          fake.phone_number(),
+                driver_license=        fake.bothify("########"),
+                vehicle_id=            str(uuid.uuid4()),
+                vehicle_license_plate= generate_license_plate(),
+            )
+        )
     return pool
 
 
 def load_driver_pool(path: str | Path) -> list[Driver]:
     """
-    Loads a pre-generated driver pool from a JSON file.
+    Loads a saved list of drivers from a file.
 
     Args:
-        path (str | Path): Path to the driver_pool.json file.
+        path (str | Path):  Where the JSON file is located.
 
     Returns:
-        list[Driver]: Reconstructed driver pool.
+        list[Driver]:       The loaded list of drivers.
 
     Raises:
-        FileNotFoundError: If the file does not exist.
-                           Run generate_pools.py first.
+        FileNotFoundError:  If the file is missing. You need to run the setup script first.
     """
     path = Path(path)
     if not path.exists():
@@ -99,20 +134,40 @@ def load_driver_pool(path: str | Path) -> list[Driver]:
             pool.append(Driver(**d))
         return pool
 
+def build_customer_pool(size: int) -> list[Customer]:
+    """
+    Creates a new list of customers.
+
+    Args:
+        size (int):     The number of customers to create.
+
+    Returns:
+        list[Customer]: A list of newly created customers.
+    """
+    pool = []
+    for _ in range(size):
+        pool.append(
+            Customer(
+                booker_id=    str(uuid.uuid4()),
+                booker_name=  fake.name(),
+                booker_email= fake.email(),
+                booker_phone= fake.phone_number(),
+            )
+        )
+    return pool
 
 def load_customer_pool(path: str | Path) -> list[Customer]:
     """
-    Loads a pre-generated customer pool from a JSON file.
+    Loads a saved list of customers from a file.
 
     Args:
-        path (str | Path): Path to the customer_pool.json file.
+        path (str | Path):  Where the JSON file is located.
 
     Returns:
-        list[Customer]: Reconstructed customer pool.
+        list[Customer]:     The loaded list of customers.
 
     Raises:
-        FileNotFoundError: If the file does not exist.
-                           Run generate_pools.py first.
+        FileNotFoundError:  If the file is missing. You need to run the setup script first.
     """
     path = Path(path)
     if not path.exists():
@@ -125,31 +180,3 @@ def load_customer_pool(path: str | Path) -> list[Customer]:
         for c in json.load(f):
             pool.append(Customer(**c))
         return pool
-
-
-def build_customer_pool(size: int) -> list[Customer]:
-    """
-    Pre-generates a fixed pool of reusable customers (bookers).
-
-    Call once per generation session before the main loop.
-    For 100,000 rides with size=10000, each customer averages ~10 rides —
-    enabling repeat purchase rate, churn, and lifetime value analytics.
-
-    Larger pool = more unique customers, lower repeat rate.
-    Smaller pool = fewer unique customers, higher repeat rate.
-
-    Args:
-        size (int): Number of unique customers to generate.
-
-    Returns:
-        list[Customer]: Fixed pool sampled randomly per ride.
-    """
-    pool = []
-    for _ in range(size):
-        pool.append(Customer(
-            booker_id=    str(uuid.uuid4()),
-            booker_name=  fake.name(),
-            booker_email= fake.email(),
-            booker_phone= fake.phone_number(),
-        ))
-    return pool

@@ -1,13 +1,12 @@
 """
-Storage configuration — single source of truth for all local paths
-and Azure Data Lake Storage (ADLS) layout constants.
+This module is a place for all folder paths and Azure storage settings.
 
-Any module that reads from or writes to local data directories,
-or uploads to ADLS, should import its paths and prefixes from here.
+Any script that reads or writes local data files, or uploads to Azure,
+should import its paths from here.
 
 Required environment variables:
-    AZURE_STORAGE_CONNECTION_STRING : Azure Storage Account connection string
-    STORAGE_ACCOUNT_CONTAINER_NAME  : Target ADLS container name
+    AZURE_STORAGE_CONNECTION_STRING:    Connection string for the Azure storage account.
+    STORAGE_ACCOUNT_CONTAINER_NAME:     Name of the target storage container.
 """
 
 import os

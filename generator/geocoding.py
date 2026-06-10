@@ -79,6 +79,7 @@ def is_valid_land(address: dict) -> bool:
 
 # --- Location Generation ---
 
+MAX_RETRIES = 500
 def generate_location(province: dict, config: RuntimeConfig = DEFAULT_CONFIG):
     """
     Generates a random valid geographic coordinate within a specified province.
@@ -91,7 +92,8 @@ def generate_location(province: dict, config: RuntimeConfig = DEFAULT_CONFIG):
         - the coordinate is within Thailand,
         - and the province matches the requested province ID.
 
-    The process automatically retries until a valid coordinate is found
+    Retries automatically on each failed attempt up to MAX_RETRIES times.
+    Raises RuntimeError if no valid coordinate is found within the limit.
 
     Args:
         province (dict): A province dictionary containing 'province_name' and 'province_id'.
@@ -99,11 +101,14 @@ def generate_location(province: dict, config: RuntimeConfig = DEFAULT_CONFIG):
 
     Returns:
         tuple[float, float, str]: A tuple containing (latitude, longitude, address).
+
+    Raises:
+        RuntimeError: If a valid coordinate could not be found after MAX_RETRIES attempts.
     """
     province_name = province["province_name"]
     attempt = 0
 
-    while True:
+    while attempt < MAX_RETRIES:
         try:
             location = geolocator.geocode(f"{province_name}, Thailand")
             bbox = location.raw["boundingbox"]
@@ -123,6 +128,7 @@ def generate_location(province: dict, config: RuntimeConfig = DEFAULT_CONFIG):
             if reverse is None:
                 if config.debug:
                     print("---Retry: no address returned---")
+                attempt += 1
                 continue
 
             address = reverse.raw["address"]
@@ -133,11 +139,13 @@ def generate_location(province: dict, config: RuntimeConfig = DEFAULT_CONFIG):
             if not is_valid_land(address):
                 if config.debug:
                     print("---Retry: point is not on land---")
+                attempt += 1
                 continue
 
             if address.get("country_code") != "th":
                 if config.debug:
                     print("---Retry: outside Thailand---")
+                attempt += 1
                 continue
 
             province_code = address.get("ISO3166-2-lvl4")
@@ -148,6 +156,7 @@ def generate_location(province: dict, config: RuntimeConfig = DEFAULT_CONFIG):
             if province_code != province["province_id"]:
                 if config.debug:
                     print("---Retry: wrong province---")
+                attempt += 1
                 continue
 
             return latitude, longitude, reverse.address
@@ -156,3 +165,7 @@ def generate_location(province: dict, config: RuntimeConfig = DEFAULT_CONFIG):
             attempt += 1
             print(f"Geocoding error (attempt {attempt}): {e}.")
             time.sleep(1)
+
+    raise RuntimeError(
+        f"Could not find a valid coordinate in {province_name} after {MAX_RETRIES} attempts. "
+    )

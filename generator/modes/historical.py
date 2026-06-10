@@ -20,7 +20,7 @@ import csv
 import json
 from datetime import datetime
 
-from config.storage import HISTORICAL_DATA_DIR
+from settings.storage import HISTORICAL_DATA_DIR
 from generator import generate_ride_record
 from generator.config import RuntimeConfig
 from generator.pool import build_driver_pool, build_customer_pool, load_driver_pool, load_customer_pool
@@ -127,7 +127,13 @@ def _write_csv(f, total: int, config: RuntimeConfig, driver_pool, customer_pool)
     for i in range(1, total + 1):
         record = generate_ride_record(config, driver_pool, customer_pool)
         if writer is None:
-            writer = csv.DictWriter(f, fieldnames=record.keys())
+            writer = csv.DictWriter(
+                f,
+                fieldnames=record.keys(),
+                # Put quotation marks around every field to prevent commas inside
+                # address fields from accidentally creating new columns.
+                quoting=csv.QUOTE_ALL,
+            )
             writer.writeheader()
         writer.writerow(record)
         _print_progress(i, total)

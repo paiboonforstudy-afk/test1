@@ -1,14 +1,14 @@
 """
-Upload historical data files to Azure Data Lake Storage Gen2.
+Script to upload historical ride data files to Azure cloud storage.
 
-Scans the local 'data/historical_data/' directory and uploads selected
-CSV and JSON files to the ADLS historical data prefix.
+Looks for CSV and JSON files in the local 'data/historical_data/' folder
+and uploads them to Azure Data Lake Storage Gen2 (ADLS).
 
 Credentials are loaded from environment variables or a '.env' file.
 
 Required environment variables:
-    AZURE_STORAGE_CONNECTION_STRING : Azure Storage Account connection string
-    STORAGE_ACCOUNT_CONTAINER_NAME  : Target ADLS container name
+    AZURE_STORAGE_CONNECTION_STRING:    Connection string for the Azure storage account.
+    STORAGE_ACCOUNT_CONTAINER_NAME:     Name of the target storage container.
 
 Usage:
     # Upload all files
@@ -23,31 +23,28 @@ Usage:
 
 import argparse
 import re
-import sys
 from datetime import datetime
 from pathlib import Path
 
 from azure.storage.blob import BlobServiceClient
 
-from config.storage import (
+from settings.storage import (
     AZURE_STORAGE_CONNECTION_STRING,
     ADLS_CONTAINER_NAME,
     ADLS_HISTORICAL_PREFIX,
     HISTORICAL_DATA_DIR,
 )
 
-# Matches filenames like: historical_20260101_20260201.csv / .json
+# Pattern used to extract dates from filenames like: historical_20260101_20260201.csv
 _FILENAME_PATTERN = re.compile(r"^historical_(\d{8})_(\d{8})\.(csv|json)$")
 _DATE_FMT         = "%Y%m%d"
 
 
-# ---------------------------------------------------------------------------
-# Client
-# ---------------------------------------------------------------------------
+# --- Client ---
 
 def _build_client() -> BlobServiceClient:
     """
-    Create a BlobServiceClient using credentials from the environment.
+    Create a connection to Azure storage using the credentials in the environment.
 
     Raises:
         EnvironmentError: If AZURE_STORAGE_CONNECTION_STRING is not set.
@@ -60,19 +57,32 @@ def _build_client() -> BlobServiceClient:
     return BlobServiceClient.from_connection_string(AZURE_STORAGE_CONNECTION_STRING)
 
 
-# ---------------------------------------------------------------------------
-# File selection
-# ---------------------------------------------------------------------------
+# --- File selection ---
+
 
 def _all_local_files() -> list[Path]:
-    """Return all .csv and .json files in the historical data directory."""
-    return [f for f in HISTORICAL_DATA_DIR.iterdir() if f.suffix in (".csv", ".json")]
+    """
+    Return all CSV and JSON files found in the historical data folder.
+
+    Returns:
+        list[Path]: A list of file paths found in HISTORICAL_DATA_DIR.
+    """
+    return [
+        f
+        for f in HISTORICAL_DATA_DIR.iterdir()
+        if f.suffix in (".csv", ".json")
+    ]
 
 
 def _select_by_names(names: list[str]) -> list[Path]:
     """
-    Return local Path objects for the requested filenames.
-    Prints a warning for any name not found locally.
+    Return the file paths for a given list of filenames.
+
+    Args:
+        names (list[str]): List of filenames to look up.
+
+    Returns:
+        list[Path]: File paths that were found locally.
     """
     selected = []
     for name in names:
@@ -86,16 +96,28 @@ def _select_by_names(names: list[str]) -> list[Path]:
 
 def _select_by_date_range(from_date: datetime, to_date: datetime) -> list[Path]:
     """
-    Return files whose embedded start date falls within [from_date, to_date] inclusive.
-    Files that do not match the expected naming convention are skipped with a warning.
+    Return files whose start date falls within the given date range (inclusive).
+
+    The start date is read from the filename, which must follow the format:
+        historical_YYYYMMDD_YYYYMMDD.csv / .json
+
+    Args:
+        from_date (datetime):   Start of the date range.
+        to_date (datetime):     End of the date range.
+
+    Returns:
+        list[Path]: Matching files sorted by filename.
     """
     selected = []
     for f in _all_local_files():
         match = _FILENAME_PATTERN.match(f.name)
+
+        # Skip files that do not follow the expected naming format.
         if not match:
             print(f"  [WARNING] Filename does not match expected pattern, skipping: {f.name}")
             continue
 
+        # Compare the start date written in the filename against the given range.
         file_start = datetime.strptime(match.group(1), _DATE_FMT)
         if from_date <= file_start <= to_date:
             selected.append(f)
@@ -103,12 +125,18 @@ def _select_by_date_range(from_date: datetime, to_date: datetime) -> list[Path]:
     return sorted(selected)
 
 
-# ---------------------------------------------------------------------------
-# Upload
-# ---------------------------------------------------------------------------
+# --- Upload ---
 
 def _upload(files: list[Path]) -> None:
-    """Upload the given list of local files to ADLS."""
+    """
+    Upload a list of local files to Azure cloud storage.
+
+    Each file is placed under the historical data folder in the storage
+    container. Existing files with the same name are overwritten.
+
+    Args:
+        files (list[Path]): List of local file paths to upload.
+    """
     if not files:
         print("No files matched the selection criteria.")
         return
@@ -119,6 +147,7 @@ def _upload(files: list[Path]) -> None:
     print(f"Uploading {len(files)} file(s) to {ADLS_CONTAINER_NAME}/{ADLS_HISTORICAL_PREFIX}/")
 
     for file in files:
+        # Build the full path inside the storage container.
         blob_name = f"{ADLS_HISTORICAL_PREFIX}/{file.name}"
         with open(file, "rb") as data:
             container.upload_blob(name=blob_name, data=data, overwrite=True)
@@ -127,13 +156,17 @@ def _upload(files: list[Path]) -> None:
     print("Done.")
 
 
-# ---------------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------------
+# --- CLI ---
 
 def _parse_args() -> argparse.Namespace:
+    """
+    Parse command-line arguments and return the result.
+
+    Returns:
+        argparse.Namespace: Parsed arguments from the command line.
+    """
     parser = argparse.ArgumentParser(
-        description="Upload historical ride data files to ADLS Gen2.",
+        description="Upload historical ride data files to Azure cloud storage.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -157,17 +190,17 @@ Examples:
     parser.add_argument(
         "--from-date",
         metavar = "YYYYMMDD",
-        help    = "Start of date range filter (inclusive). Requires --to-date.",
+        help    = "Start of the date range filter (inclusive). Requires --to-date.",
     )
     parser.add_argument(
         "--to-date",
         metavar = "YYYYMMDD",
-        help    = "End of date range filter (inclusive). Requires --from-date.",
+        help    = "End of the date range filter (inclusive). Requires --from-date.",
     )
 
     args = parser.parse_args()
 
-    # Mutual inclusion: --from-date and --to-date must be used together.
+    # Both --from-date and --to-date must be provided together.
     if bool(args.from_date) ^ bool(args.to_date):
         parser.error("--from-date and --to-date must be used together.")
 
@@ -175,6 +208,10 @@ Examples:
 
 
 def run() -> None:
+    """
+    Reads arguments from the command line, selects the matching files,
+    and uploads them to Azure cloud storage.
+    """
     args = _parse_args()
 
     all_files = _all_local_files()
@@ -183,27 +220,26 @@ def run() -> None:
         return
 
     # --- Determine which files to upload ---
+
     if args.files:
-        # Mode: explicit file selection
+        # Upload only the files specified by name.
         files = _select_by_names(args.files)
 
     elif args.from_date and args.to_date:
-        # Mode: date range selection
+        # Upload files whose start date falls within the given range.
         try:
             from_dt = datetime.strptime(args.from_date, _DATE_FMT)
             to_dt   = datetime.strptime(args.to_date,   _DATE_FMT)
         except ValueError:
-            print("Error: Dates must be in YYYYMMDD format (e.g. 20260101).")
-            sys.exit(1)
+            raise ValueError("Dates must be in YYYYMMDD format (e.g. 20260101).")
 
         if from_dt > to_dt:
-            print("Error: --from-date must be earlier than or equal to --to-date.")
-            sys.exit(1)
+            raise ValueError("--from-date must be earlier than --to-date.")
 
         files = _select_by_date_range(from_dt, to_dt)
 
     else:
-        # Mode: default — upload everything
+        # If no extra arguments were provided, upload everything.
         files = sorted(all_files)
 
     _upload(files)

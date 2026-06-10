@@ -1,14 +1,10 @@
-# 🚕 End-to-End Ride-Hailing Data Pipeline — Thailand Market
+# 🚕 End-to-End Ride-Hailing Data Pipeline
 
-![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
-![Azure](https://img.shields.io/badge/Azure-Data%20Lake%20%7C%20Event%20Hub-0078D4?logo=microsoftazure)
-![Databricks](https://img.shields.io/badge/Databricks-Delta%20Live%20Tables-FF3621?logo=databricks)
-![PowerBI](https://img.shields.io/badge/Power%20BI-Dashboard-F2C811?logo=powerbi)
-![License](https://img.shields.io/badge/License-MIT-green)
+## 💡 Why I Built This
 
-A production-style, end-to-end data pipeline that simulates a ride-hailing platform operating across all 77 Thai provinces — from synthetic data generation to cloud ingestion, transformation, and interactive business intelligence reporting.
+I have been interested in data engineering for some time. In my previous work, I often extracted, validated, cleaned, and loaded data manually, repeating the same process whenever new data became available.While this approach was effective for smaller workloads, it was time-consuming, difficult to maintain, and not easily scalable. 
 
-> **Scale:** 30,000+ ride records · 77 provinces · 6 ride options · 5 payment methods · 500 drivers · 5,000 customers
+To better understand how modern data platforms automate these processes, I wanted to gain hands-on experience with the tools, architectures, and workflows used in production environments. As a result, I built this project to design and implement an end-to-end data pipeline that moves raw data through ingestion, transformation, and visualization, delivering insights through an interactive dashboard.
 
 ---
 

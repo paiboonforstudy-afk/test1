@@ -56,7 +56,7 @@ External documentation and resources used in this project.
 - [PySpark Structured Streaming](https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html)
 
 
-## Power BId
+## Power BI
 
 - [Connect Power BI to Databricks](https://docs.databricks.com/en/partners/bi/power-bi.html)
 - [Power BI PBIDS Connection File](https://learn.microsoft.com/en-us/power-bi/connect-data/desktop-data-sources#using-pbids-files-to-get-data)

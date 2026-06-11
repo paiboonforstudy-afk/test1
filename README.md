@@ -1,8 +1,9 @@
 # 🚕 End-to-End Ride-Hailing Data Pipeline
 
-## 🏗️ Overview
+## 🔎 Overview
 
 ![Overview Diagram](docs/images/architecture.png)
+![Dashboard Overview](docs/images/dashboard_growth.png)
 
 ---
 
@@ -58,8 +59,8 @@ All three flows converge in **Azure Databricks** where data is processed through
 ---
 
 ## ⚙️ Data Generator
+![Data Generator Diagram](docs/images/data_generator.png)
 
-The generator creates realistic ride records using **real Thai geographic coordinates** — not random lat/lon values. It uses a self-hosted **Nominatim** instance (OpenStreetMap) running in Docker to validate that every pickup and dropoff point is on land, inside Thailand, and within the correct province.
 
 ### How location generation works
 

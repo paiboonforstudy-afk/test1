@@ -59,8 +59,18 @@ All three flows converge in **Azure Databricks** where data is processed through
 ---
 
 ## ⚙️ Data Generator
+
 ![Data Generator Diagram](docs/images/data_generator.png)
 
+The generator creates realistic ride records using **real Thai geographic coordinates** — not random lat/lon values. It uses a self-hosted **Nominatim** instance (OpenStreetMap) running in Docker to validate that every pickup and dropoff point is on land, inside Thailand, and within the correct province.
+
+Three output modes are supported:
+
+| Mode | Script | Destination |
+|---|---|---|
+| Real-time stream | `eventhub.py` | Azure Event Hubs (JSON) |
+| Historical batch | `historical.py` → `upload_historical.py` | Azure Data Lake Storage Gen2 (CSV / JSON) |
+| Mapping data | GitHub Actions | Azure Data Lake Storage Gen2 (JSON) |
 
 ### How location generation works
 

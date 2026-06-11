@@ -3,7 +3,7 @@
 ## 🔎 Overview
 
 ![Overview Diagram](docs/images/overview.png)
-![Dashboard Overview](docs/images/dashboard_growth.png)
+![Dashboard Example](docs/images/dashboard_ride_options.png)
 
 ---
 
@@ -19,6 +19,44 @@ To better understand how modern data platforms automate these processes, I wante
 
 ---
 
+## 🔄 Data Pipeline Architecture
+
+![Data Pipeline Architecture](docs/images/pipeline_architecture.png)
+
+The data architecture for this project follows the Medallion Architecture with Bronze, Silver, and Gold layers.
+
+### 🥉 Bronze - Raw Ingestion
+
+- **`ingest_events.py`** connects to Azure Event Hubs via Kafka and stores each message as a raw JSON string in `eh_rides`, parsing happens downstream in Silver.
+- **`ingest_historical.py`** creates a `historical_rides_manifest` table to track every loaded file by path and file size, so only new or replaced files are ever loaded.
+- **`ingest_mapping.py`** detects changes by hashing each row's content with SHA-256 and comparing it against the last known version in the target table so only new or changed rows are appended.
+
+### 🥈 Silver - Enrichment & Privacy
+
+- **`rides_enriched.py`** merges `eh_rides` and `historical_rides` into a single table, casts timestamp strings to proper `TIMESTAMP` types, and replaces 7 personal identification information(PII) fields (names, emails, phones, license numbers) with SHA-256 hashes.
+
+> There is no data cleansing in this layer because the data generator always produces clean, well-formed records. In a real-world pipeline this is where null handling, deduplication, and format validation would live.
+
+### 🥇 Gold - Star Schema
+
+![Star Schema](docs/images/star_schema.png)
+
+- **`star_schema.py`** builds the full star schema from `rides_enriched` and the bronze mapping tables.
+- **`dim_booker`, `dim_driver`, `dim_vehicle`** are SCD Type 1 - always reflects the latest value, no history kept.
+- **`dim_ride_option`, `dim_payment_method`** are SCD Type 2 - full history is kept so old rides always link to the correct version at the time of booking.
+- **`dim_province`, `dim_ride_status`, `dim_cancellation_reason`** are static reference tables loaded directly from bronze.
+- **`fact_rides`** stores one row per ride with all foreign keys, timestamps, fare breakdown, distance, duration, and ratings.
+
+---
+
+## 📊 Dashboard
+
+![Dashboard Growth](docs/images/dashboard_growth.png)
+![Dashboard Cancellation & Service Quality](docs/images/dashboard_geographic.png)
+![Dashboard Geographic Performance](docs/images/dashboard_geographic_performance.png)
+![Dashboard Ride Options](docs/images/dashboard_ride_options.png)
+---
+
 ## ⚙️ Data Generator
 
 ![Data Generator Diagram](docs/images/data_generator.png)
@@ -32,7 +70,7 @@ Before any rides can be generated, a pool of drivers and customers must be creat
 Once the pools are ready, `data_generator.py` generates ride records using real Thai geographic coordinates validated against a self-hosted Nominatim (OpenStreetMap) instance. Two modes are used:
 
 - **`eventhub` mode** - streams live ride records one by one to Azure Event Hubs as JSON. Simulates real-time ride records.
-- **`historical` mode** - generates a batch of rides within a given date range and saves them as CSV or JSON files locally. Used to backfill historical data.
+- **`historical` mode** - generates a batch of rides within a given date range and saves them as CSV or JSON files locally. Used to generate historical data.
 
 After historical files are generated, `upload_historical.py` uploads them to Azure Data Lake Storage Gen2, where they are picked up by the Bronze ingestion pipeline.
 
@@ -42,53 +80,6 @@ Province, ride option, and payment method reference files are stored in the repo
 
 ### Commands : <link>
 ### How location generation works : <link>
-
----
-
-## 🔄 Data Pipeline Architecture
-
-![Data Pipeline Architecture](docs/images/pipeline_architecture.png)
-
-The data architecture for this project follows the Medallion Architecture with Bronze, Silver, and Gold layers.
-
-### 🥉 Bronze — Raw Ingestion
-
-- **`ingest_events.py`** connects to Azure Event Hubs via Kafka and stores each message as a raw JSON string in `eh_rides` — parsing happens downstream in Silver.
-- **`ingest_historical.py`** creates a `historical_rides_manifest` table to track every loaded file by path and file size, so only new or replaced files are ever loaded.
-- **`ingest_mapping.py`** detects changes by hashing each row's content with SHA-256 and comparing it against the last known version in the target table — only new or changed rows are appended.
-
-### 🥈 Silver — Enrichment & Privacy
-
-- **`rides_enriched.py`** merges `eh_rides` and `historical_rides` into a single unified table, casts timestamp strings to proper `TIMESTAMP` types, and replaces 7 PII fields (names, emails, phones, license numbers) with SHA-256 hashes.
-
-> There is no data cleansing in this layer because the data generator always produces clean, well-formed records. In a real-world pipeline this is where null handling, deduplication, and format validation would live.
-
-### 🥇 Gold — Star Schema
-
-![Star Schema](docs/images/star_schema.png)
-
-- **`star_schema.py`** builds the full star schema from `rides_enriched` and the bronze mapping tables.
-- **`dim_booker`, `dim_driver`, `dim_vehicle`** are SCD Type 1 — always reflects the latest value, no history kept.
-- **`dim_ride_option`, `dim_payment_method`** are SCD Type 2 — full history is kept so old rides always link to the correct version at the time of booking.
-- **`dim_province`, `dim_ride_status`, `dim_cancellation_reason`** are static reference tables loaded directly from bronze.
-- **`fact_rides`** stores one row per ride with all foreign keys, timestamps, fare breakdown, distance, duration, and ratings.
-
----
-
-## 📊 Dashboard
-
-![Dashboard Overview](docs/images/dashboard_growth.png)
-
-4-page interactive dashboard built on the Gold Layer star schema.
-
-| Page | Business Question |
-|---|---|
-| 📈 **Growth** | Is the business heading in the right direction? |
-| ❌ **Cancellation & Service Quality** | Why are rides failing and who is responsible? |
-| 🗺️ **Geographic Performance** | Where should we invest or expand? |
-| 💰 **Ride Option & Revenue** | Which products make money and which need attention? |
-
-![Dashboard Geographic](docs/images/dashboard_geographic.png)
 
 ---
 
@@ -161,24 +152,6 @@ ride-hailing-project/
 ├── REFERENCES.md                  # External documentation
 └── requirements.txt
 ```
-
----
-
-## 🎯 Skills Demonstrated
-
-| Skill | Detail |
-|---|---|
-| **Data Engineering** | End-to-end pipeline from raw ingestion to reporting |
-| **Cloud (Azure)** | ADLS Gen2, Event Hub, Databricks, Unity Catalog |
-| **Streaming** | Real-time ingestion via Azure Event Hub + Kafka |
-| **Batch Processing** | Historical CSV/JSON ingestion with deduplication |
-| **Delta Lake** | Bronze/Silver/Gold medallion architecture |
-| **Delta Live Tables** | Declarative pipeline with CDC and SCD support |
-| **Star Schema** | Dimensional modeling with SCD Type 1 and Type 2 |
-| **PII Protection** | SHA-256 hashing of personal data in Silver layer |
-| **Python** | Data generation, geocoding, Azure SDK, CLI tooling |
-| **Power BI** | Multi-page dashboard with DAX measures and drill-through |
-| **Geospatial** | Real coordinate generation using Nominatim + OpenStreetMap |
 
 ---
 

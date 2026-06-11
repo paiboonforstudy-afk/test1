@@ -12,15 +12,16 @@
 
 ## 💡 Why I Built This
 
-I have been interested in data engineering for some time. In my previous work, I often extracted, validated, cleaned, and loaded data manually, repeating the same process whenever new data became available. While this approach was effective for smaller workloads, it was time-consuming, difficult to maintain, and not easily scalable. 
+I have been interested in data engineering for some time. In my previous work, I often extracted, validated, cleaned, and loaded data manually, repeating the same process whenever new data became available. While this approach was effective for smaller workloads, it was time-consuming, difficult to maintain, and not easily scalable.
 
 To better understand how modern data platforms automate these processes, I wanted to gain hands-on experience with the tools, architectures, and workflows used in production environments. As a result, I built this project to design and implement an end-to-end data pipeline that moves raw data through ingestion, transformation, and visualization, delivering insights through an interactive dashboard.
 
 I designed this project around two real-world pipeline scenarios:
 
-Scenario 1: Real-time ingestion: Rides are streamed live to Azure Event Hubs, simulating a production system where data must be captured and processed continuously as it arrives.
+**Scenario 1 — Real-time ingestion:** Rides are streamed live to Azure Event Hubs, simulating a production system where data must be captured and processed continuously as it arrives.
 
-Scenario 2: System migration: The business has historical ride data from a previous system that must be migrated into the new pipeline.
+**Scenario 2 — System migration:** The business has historical ride data from a previous system that must be migrated into the new pipeline.
+
 ---
 
 ## 📋 Table of Contents

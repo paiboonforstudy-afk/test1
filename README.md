@@ -2,7 +2,7 @@
 
 ## 🔎 Overview
 
-![Overview Diagram](docs/images/architecture.png)
+![Overview Diagram](docs/images/overview.png)
 ![Dashboard Overview](docs/images/dashboard_growth.png)
 
 ---
@@ -29,35 +29,6 @@ To better understand how modern data platforms automate these processes, I wante
 
 ---
 
-Three data flows feed into the pipeline:
-
-| Flow | Description |
-|---|---|
-| **Historical batch** | CSV/JSON files uploaded to Azure Data Lake Storage Gen2 |
-| **Mapping data** | Province, ride option, and payment method JSON files uploaded to ADLS |
-| **Real-time stream** | Live ride records streamed to Azure Event Hub |
-
-All three flows converge in **Azure Databricks** where data is processed through the Bronze → Silver → Gold medallion architecture before being served to **Power BI**.
-
----
-
-## 📊 Dashboard
-
-![Dashboard Overview](docs/images/dashboard_growth.png)
-
-4-page interactive dashboard built on the Gold Layer star schema.
-
-| Page | Business Question |
-|---|---|
-| 📈 **Growth** | Is the business heading in the right direction? |
-| ❌ **Cancellation & Service Quality** | Why are rides failing and who is responsible? |
-| 🗺️ **Geographic Performance** | Where should we invest or expand? |
-| 💰 **Ride Option & Revenue** | Which products make money and which need attention? |
-
-![Dashboard Geographic](docs/images/dashboard_geographic.png)
-
----
-
 ## ⚙️ Data Generator
 
 ![Data Generator Diagram](docs/images/data_generator.png)
@@ -70,73 +41,21 @@ Before any rides can be generated, a pool of drivers and customers must be creat
 
 Once the pools are ready, `data_generator.py` generates ride records using real Thai geographic coordinates validated against a self-hosted Nominatim (OpenStreetMap) instance. Two modes are used:
 
-- **`eventhub` mode** — streams live ride records one by one to Azure Event Hubs as JSON. Simulates real-time ride records.
-- **`historical` mode** — generates a batch of rides within a given date range and saves them as CSV or JSON files locally. Used to backfill historical data.
+- **`eventhub` mode** - streams live ride records one by one to Azure Event Hubs as JSON. Simulates real-time ride records.
+- **`historical` mode** - generates a batch of rides within a given date range and saves them as CSV or JSON files locally. Used to backfill historical data.
 
 After historical files are generated, `upload_historical.py` uploads them to Azure Data Lake Storage Gen2, where they are picked up by the Bronze ingestion pipeline.
 
-**Mapping data — GitHub Actions**
+**Mapping data - GitHub Actions**
 
 Province, ride option, and payment method reference files are stored in the repository under `data/mapping_data/`. A GitHub Actions workflow automatically uploads these JSON files to Azure Data Lake Storage Gen2 whenever they are updated in the repository.
 
-### How location generation works
-
-```
-1. Request bounding box for a province from Nominatim
-         e.g. "Bangkok, Thailand" → lat/lon bounds
-
-2. Sample a random coordinate within the bounding box
-
-3. Reverse geocode the coordinate
-         → Is it on land?
-         → Is it inside Thailand?
-         → Does the province match?
-
-4. Pass → use this coordinate
-   Fail → retry (up to 500 attempts)
-```
-
-### Simulation parameters
-
-| Parameter | Value | Detail |
-|---|---|---|
-| Hot provinces | 11 | Bangkok, Phuket, Chiang Mai, Pattaya, etc. |
-| Hot province selection chance | 80% | Simulates real urban demand concentration |
-| Same-province dropoff chance | 70% | Most rides stay within one province |
-| Completion rate | 80% | 20% of rides are cancelled |
-| Surge hours | 7–9 AM, 5–8 PM | Multiplier 1.2x–1.5x |
-| Tip chance | 20% | 5–20% of subtotal |
-
-### Ride option distance suitability
-
-| Ride Option | Short (0–5km) | Medium (5–15km) | Suburban (15–80km) | Regional (80–250km) | Cross-country |
-|---|---|---|---|---|---|
-| Economy | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Taxi | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Bike | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Premium | ❌ | ✅ | ✅ | ✅ | ❌ |
-| SUV | ❌ | ✅ | ✅ | ✅ | ✅ |
-| Van | ❌ | ❌ | ✅ | ✅ | ✅ |
-
-### Commands
-
-```bash
-# Print 5 records to terminal
-python data_generator.py generate --count 5
-
-# Generate historical batch and save to CSV
-python data_generator.py historical --count 25000 --format csv --duration 2026-01-01:2026-02-01
-
-# Stream live records to Azure Event Hub
-python data_generator.py eventhub --mode stream --interval 0.5
-
-# Upload files to Azure Data Lake Storage
-python upload_historical.py --from-date 20260101 --to-date 20260601
-```
+### Commands : <link>
+### How location generation works : <link>
 
 ---
 
-## 🔄 Data Pipeline — Bronze → Silver → Gold
+## 🔄 Data Pipeline Architcture
 
 ### 🥉 Bronze — Raw Ingestion
 
@@ -157,6 +76,23 @@ python upload_historical.py --from-date 20260101 --to-date 20260601
 ### 🥇 Gold — Star Schema
 
 ![Star Schema](docs/images/star_schema.png)
+
+---
+
+## 📊 Dashboard
+
+![Dashboard Overview](docs/images/dashboard_growth.png)
+
+4-page interactive dashboard built on the Gold Layer star schema.
+
+| Page | Business Question |
+|---|---|
+| 📈 **Growth** | Is the business heading in the right direction? |
+| ❌ **Cancellation & Service Quality** | Why are rides failing and who is responsible? |
+| 🗺️ **Geographic Performance** | Where should we invest or expand? |
+| 💰 **Ride Option & Revenue** | Which products make money and which need attention? |
+
+![Dashboard Geographic](docs/images/dashboard_geographic.png)
 
 ---
 

@@ -71,9 +71,16 @@ The data architecture for this project follows the Medallion Architecture with B
 
 > Note: The dashboard data is generated for demonstration purposes and does not represent real-world figures, which is why some visuals may not make sense.
 
+### 📈 Growth
 ![Dashboard Growth](docs/images/dashboard_growth.png)
+
+### ❌ Cancellation & Service Quality
 ![Dashboard Cancellation & Service Quality](docs/images/dashboard_cancellation.png)
+
+### 🗺️ Geographic Performance
 ![Dashboard Geographic Performance](docs/images/dashboard_geographic_performance.png)
+
+### 💰 Ride Option & Revenue
 ![Dashboard Ride Options](docs/images/dashboard_ride_options.png)
 
 ---

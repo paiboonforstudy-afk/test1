@@ -40,7 +40,31 @@ Used to run the Bronze, Silver, and Gold pipeline notebooks.
 - Select the resource group and a pricing tier (Standard or Premium)
 - Once deployed, click **Launch Workspace**
 - Inside the workspace, create a cluster to run the pipelines
-- Connect the Databricks workspace to the ADLS Gen2 storage account and Event Hubs using credentials stored as Databricks secrets or environment variables
+- Connect the Databricks workspace to ADLS Gen2 and Event Hubs by storing credentials as Databricks secrets:
+
+  **Install the Databricks CLI and authenticate**
+  ```bash
+  pip install databricks-cli
+  databricks configure --token
+  # Enter your Databricks workspace URL and a personal access token
+  ```
+
+  **Create a secret scope**
+  ```bash
+  databricks secrets create-scope --scope ride-hailing
+  ```
+
+  **Add secrets to the scope**
+  ```bash
+  databricks secrets put --scope ride-hailing --key ADLS_ACCOUNT_NAME
+  databricks secrets put --scope ride-hailing --key ADLS_ACCOUNT_KEY
+  databricks secrets put --scope ride-hailing --key EVENTHUB_CONNECTION_STRING
+  ```
+
+  Secrets can then be read inside Databricks notebooks with:
+  ```python
+  dbutils.secrets.get(scope="ride-hailing", key="ADLS_ACCOUNT_KEY")
+  ```
 
 ---
 
@@ -56,7 +80,6 @@ cd ride-hailing-project
 ```bash
 python -m venv .venv
 .venv\Scripts\activate       # Windows
-source .venv/bin/activate    # Mac / Linux
 ```
 
 **3. Install dependencies**
@@ -75,12 +98,17 @@ cp .env.example .env
 docker run -p 8080:8080 mediagis/nominatim
 ```
 
-**6. Generate data**
+**6. Generate pools**
+```bash
+python generate_pools.py
+```
+
+**7. Generate data**
 ```bash
 python data_generator.py historical --count 5000 --format csv --duration 2026-01-01:2026-02-01
 ```
 
-**7. Upload to Azure**
+**8. Upload to Azure**
 ```bash
 python upload_historical.py
 ```

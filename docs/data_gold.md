@@ -1,4 +1,4 @@
-# Data Catalog — Gold Layer
+# Gold Layer
 
 The Gold layer contains the star schema used for reporting and analysis. It is built from the Silver layer and Bronze mapping tables using Delta Live Tables. All tables are stored as Delta tables in the `ride_hailing.gold` schema.
 

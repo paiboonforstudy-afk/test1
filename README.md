@@ -2,11 +2,7 @@
 
 ## 🔎 Overview
 
-### Project Workflow
 ![Overview Diagram](docs/images/overview.png)
-
-### Dashboard Example
-![Dashboard Example](docs/images/dashboard_ride_options.png)
 
 ---
 
@@ -21,6 +17,33 @@ I designed this project around two real-world pipeline scenarios:
 **Scenario 1 - Real-time ingestion:** Rides data are streamed live to Azure Event Hubs, simulating a production system where data must be captured and processed continuously as it arrives.
 
 **Scenario 2 - System migration:** The business has historical ride data from a previous system that must be migrated into the new pipeline.
+
+---
+
+## 📊 Dashboard
+
+4-page interactive dashboard built on the Gold layer star schema.
+
+| Page | Business Question |
+|---|---|
+| 📈 **Growth** | Is the business growing sustainably and moving in the right direction?|
+| ❌ **Cancellation & Service Quality** | What factors are driving ride cancellation, and where are service improvements needed? |
+| 🗺️ **Geographic Performance** | Which regions are performing best, and where should future investments or expansion be focused? |
+| 💰 **Ride Option & Revenue** | Which ride option generate the highest revenue, and which require strategic attention? |
+
+> Note: The dashboard data is generated for demonstration purposes and does not represent real-world figures, which is why some visuals may not make sense.
+
+### 📈 Growth
+![Dashboard Growth](docs/images/dashboard_growth.png)
+
+### ❌ Cancellation & Service Quality
+![Dashboard Cancellation & Service Quality](docs/images/dashboard_cancellation.png)
+
+### 🗺️ Geographic Performance
+![Dashboard Geographic Performance](docs/images/dashboard_geographic_performance.png)
+
+### 💰 Ride Option & Revenue
+![Dashboard Ride Options](docs/images/dashboard_ride_options.png)
 
 ---
 
@@ -67,33 +90,6 @@ The data architecture for this project follows the Medallion Architecture with B
 
 ---
 
-## 📊 Dashboard
-
-4-page interactive dashboard built on the Gold layer star schema.
-
-| Page | Business Question |
-|---|---|
-| 📈 **Growth** | Is the business growing sustainably and moving in the right direction?|
-| ❌ **Cancellation & Service Quality** | What factors are driving ride cancellation, and where are service improvements needed? |
-| 🗺️ **Geographic Performance** | Which regions are performing best, and where should future investments or expansion be focused? |
-| 💰 **Ride Option & Revenue** | Which ride option generate the highest revenue, and which require strategic attention? |
-
-> Note: The dashboard data is generated for demonstration purposes and does not represent real-world figures, which is why some visuals may not make sense.
-
-### 📈 Growth
-![Dashboard Growth](docs/images/dashboard_growth.png)
-
-### ❌ Cancellation & Service Quality
-![Dashboard Cancellation & Service Quality](docs/images/dashboard_cancellation.png)
-
-### 🗺️ Geographic Performance
-![Dashboard Geographic Performance](docs/images/dashboard_geographic_performance.png)
-
-### 💰 Ride Option & Revenue
-![Dashboard Ride Options](docs/images/dashboard_ride_options.png)
-
----
-
 ## ⚙️ Data Generator
 
 ![Data Generator Diagram](docs/images/data_generator.png)
@@ -115,34 +111,7 @@ After historical files are generated, `upload_historical.py` uploads them to Azu
 
 Province, ride option, and payment method reference files are stored in the repository under `data/mapping_data/`. A GitHub Actions workflow automatically uploads these JSON files to Azure Data Lake Storage Gen2 whenever they are updated in the repository.
 
-### Commands : <link>
-### How location generation works : <link>
-
----
-
-## 📐 Data Structure
-
-**Dimension tables:**
-
-| Table | SCD Type | Key Columns |
-|---|---|---|
-| `dim_booker` | Type 1 | booker_id |
-| `dim_driver` | Type 1 | driver_id |
-| `dim_vehicle` | Type 1 | vehicle_id |
-| `dim_province` | Static | province_id, province_name |
-| `dim_ride_status` | Static | ride_status_id, ride_status |
-| `dim_cancellation_reason` | Static | cancellation_reason_id, initiator, cancellation_reason |
-| `dim_ride_option` | Type 2 | ride_option_id, ride_option_name, base_rate, per_km, per_minute |
-| `dim_payment_method` | Type 2 | payment_method_id, payment_method, is_card |
-
-**Fact table:**
-
-| Table | Grain | Key Measures |
-|---|---|---|
-| `fact_rides` | One row per ride | total_fare, travel_distance_km, duration_minutes, surge_multiplier, tip_amount, rating, driver_rating |
-
-> **SCD Type 1** — always reflects the latest value, no history kept.
-> **SCD Type 2** — keeps a full history of changes. Old rides always link to the correct version of the ride option or payment method at the time of booking.
+See [commands.md](docs/commands.md) for the full list of commands.
 
 ---
 
@@ -194,44 +163,7 @@ ride-hailing-project/
 
 ## 🚀 Setup
 
-**1. Clone the repository**
-```bash
-git clone <repo-url>
-cd ride-hailing-project
-```
-
-**2. Create virtual environment**
-```bash
-python -m venv .venv
-.venv\Scripts\activate       # Windows
-source .venv/bin/activate    # Mac / Linux
-```
-
-**3. Install dependencies**
-```bash
-pip install -r requirements.txt
-```
-
-**4. Set up environment variables**
-```bash
-cp .env.example .env
-# Fill in your Azure credentials
-```
-
-**5. Start Nominatim Docker**
-```bash
-docker run -p 8080:8080 mediagis/nominatim
-```
-
-**6. Generate data**
-```bash
-python data_generator.py historical --count 5000 --format csv --duration 2026-01-01:2026-02-01
-```
-
-**7. Upload to Azure**
-```bash
-python upload_historical.py
-```
+See [setup.md](docs/setup.md) for step-by-step instructions to clone the repository, set up the environment, and run the data generator.
 
 ---
 

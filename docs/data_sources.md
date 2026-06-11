@@ -1,4 +1,4 @@
-# Data Catalog — Sources
+# Sources
 
 The Sources layer contains raw data before it enters the Bronze layer. Data originates from two places: the data generator (ride records) and the repository mapping files (reference data).
 

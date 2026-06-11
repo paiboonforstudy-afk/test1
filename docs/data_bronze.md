@@ -1,6 +1,6 @@
-# Data Catalog — Bronze Layer
+# Bronze Layer
 
-The Bronze layer stores raw, unmodified data exactly as it arrives from the source. No transformations are applied. All tables are stored as Delta tables in the `ride_hailing.bronze` schema.
+The Bronze layer is the first landing zone for all incoming data. Ride records (`eh_rides`, `historical_rides`) are stored without modification. Mapping tables (`map_*`) have a `loaded_at` timestamp added on ingestion, and only new or changed rows are appended. All tables are stored as Delta tables in the `ride_hailing.bronze` schema.
 
 ---
 

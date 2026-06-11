@@ -1,4 +1,4 @@
-# Data Catalog — Silver Layer
+# Silver Layer
 
 The Silver layer combines and cleans data from the Bronze layer. Timestamps are cast to proper datetime types and all personally identifiable information (PII) is replaced with SHA-256 hashes before writing. All tables are stored as Delta tables in the `ride_hailing.silver` schema.
 

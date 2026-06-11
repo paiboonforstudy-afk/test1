@@ -1,11 +1,5 @@
 # 🚕 End-to-End Ride-Hailing Data Pipeline
 
-## 🔎 Overview
-
-![Overview Diagram](docs/images/overview.png)
-
----
-
 ## 💡 Why I Built This
 
 I have been interested in data engineering for some time. In my previous work, I often extracted, validated, cleaned, and loaded data manually, repeating the same process whenever new data became available. While this approach was effective for smaller workloads, it was time-consuming, difficult to maintain, and not easily scalable.
@@ -17,6 +11,12 @@ I designed this project around two real-world pipeline scenarios:
 **Scenario 1 - Real-time ingestion:** Rides data are streamed live to Azure Event Hubs, simulating a production system where data must be captured and processed continuously as it arrives.
 
 **Scenario 2 - System migration:** The business has historical ride data from a previous system that must be migrated into the new pipeline.
+
+---
+
+## 🔎 Overview
+
+![Overview Diagram](docs/images/overview.png)
 
 ---
 
@@ -47,10 +47,6 @@ I designed this project around two real-world pipeline scenarios:
 
 ---
 
-## 📋 Table of Contents
-
----
-
 ## 🔄 Data Pipeline Architecture
 
 ![Data Pipeline Architecture](docs/images/pipeline_architecture.png)
@@ -78,6 +74,8 @@ The data architecture for this project follows the Medallion Architecture with B
 - **`dim_ride_option`, `dim_payment_method`** are SCD Type 2 - full history is kept so old rides always link to the correct version at the time of booking.
 - **`dim_province`, `dim_ride_status`, `dim_cancellation_reason`** are static reference tables loaded directly from bronze.
 - **`fact_rides`** stores one row per ride with all foreign keys, timestamps, fare breakdown, distance, duration, and ratings.
+
+---
 
 ## 📖 Data Structure
 

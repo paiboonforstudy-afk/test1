@@ -57,6 +57,8 @@ Province, ride option, and payment method reference files are stored in the repo
 
 ## 🔄 Data Pipeline Architcture
 
+![Data Pipeline Architcture](docs/images/pipeline_architecture.png)
+
 ### 🥉 Bronze — Raw Ingestion
 
 | Script | Source | Target | Description |

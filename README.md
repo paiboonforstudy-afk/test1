@@ -20,6 +20,18 @@ I designed this project around two real-world pipeline scenarios:
 
 ---
 
+## 📋 Table of Contents
+
+- [Dashboard](#-dashboard)
+- [Data Pipeline Architecture](#-data-pipeline-architecture)
+- [Data Structure](#-data-structure)
+- [Data Generator](#️-data-generator)
+- [Project Structure](#️-project-structure)
+- [Setup](#-setup)
+- [References](#-references)
+
+---
+
 ## 📊 Dashboard
 
 4-page interactive dashboard built on the Gold layer star schema.

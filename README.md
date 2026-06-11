@@ -119,43 +119,54 @@ See [commands.md](docs/commands.md) for the full list of commands.
 
 ```
 ride-hailing-project/
-├── azure_databricks/              # Databricks pipeline notebooks
+├── azure_databricks/                                       # Azure Databricks pipeline notebooks
 │   ├── pipeline-bronze/
-│   │   ├── ingest_historical.py
-│   │   ├── ingest_mapping.py
+│   │   ├── ingest_historical.py                               # Incremental batch load for historical ride files
+│   │   ├── ingest_mapping.py                                  # Change-detected append for mapping tables
 │   │   └── pipeline-bronze-ingestion/transformations/
-│   │       └── ingest_events.py
+│   │       └── ingest_events.py                               # DLT streaming append from Azure Event Hubs
 │   ├── pipeline-silver/
 │   │   └── pipeline-silver-enriched/transformations/
-│   │       └── rides_enriched.py
+│   │       └── rides_enriched.py                              # Merge, cast timestamps, hash PII
 │   └── pipeline-gold/
 │       └── pipeline-gold-star-schema/transformations/
-│           └── star_schema.py
+│           └── star_schema.py                                 # Build star schema (dim_* + fact_rides)
 ├── generator/                     # Data generation logic
 │   ├── core.py                    # Ride record simulation
-│   ├── geocoding.py               # Nominatim location generator
+│   ├── geocoding.py               # Nominatim reverse geocoding
 │   ├── config.py                  # Probabilities and parameters
-│   ├── pool.py                    # Driver and customer pools
+│   ├── pool.py                    # Driver and customer pool generation
 │   ├── loader.py                  # Mapping data loader
 │   └── modes/
 │       ├── generate.py            # Terminal output mode
 │       ├── historical.py          # File output mode
-│       └── eventhub.py            # Azure Event Hub mode
+│       └── eventhub.py            # Azure Event Hub streaming mode
 ├── settings/
-│   └── storage.py                 # Paths and Azure settings
+│   └── storage.py                 # ADLS paths and Azure settings
 ├── data/
 │   ├── mapping_data/              # Province, ride option, payment method JSON
 │   ├── historical_data/           # Generated CSV/JSON ride files
 │   └── pools/                     # Driver and customer pool files
 ├── powerbi/
-│   └── powerbi-dashboard.pbix    # Power BI dashboard
+│   └── powerbi-dashboard.pbix     # Power BI dashboard
 ├── docs/
-│   └── images/                   # Architecture and dashboard screenshots
-├── data_generator.py              # CLI entry point
-├── upload_historical.py           # Upload files to ADLS
-├── generate_pools.py              # Pre-generate driver/customer pools
+│   ├── draw.io/                   # draw.io source files for architecture diagrams
+│   ├── images/                    # Exported architecture and dashboard screenshots
+│   ├── data_sources.md            # Data dictionary - Sources layer
+│   ├── data_bronze.md             # Data dictionary - Bronze layer
+│   ├── data_silver.md             # Data dictionary - Silver layer
+│   ├── data_gold.md               # Data dictionary - Gold layer
+│   ├── star_schema.md             # dbdiagram.io code for the Gold star schema
+│   ├── commands.md                # All CLI commands for the data generator
+│   └── setup.md                   # Azure and local setup instructions
+├── .github/workflows/
+│   └── sync_mapping.yml           # GitHub Actions — upload mapping JSON to ADLS
+├── data_generator.py              # CLI entry point for ride generation
+├── upload_historical.py           # Upload historical files to ADLS
+├── generate_pools.py              # Pre-generate driver and customer pools
+├── docker-compose.yaml            # Nominatim container for geocoding
 ├── .env.example                   # Required environment variables
-├── REFERENCES.md                  # External documentation
+├── REFERENCES.md                  # External documentation and resources
 └── requirements.txt
 ```
 

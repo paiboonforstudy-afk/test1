@@ -19,7 +19,7 @@
     "per_km": 6.50,
     "per_minute": 2.00,
     "is_active": false,
-    "retired_at": "06-11-2026"
+    "retired_at": null
   },
   {
     "ride_option_id": 3,

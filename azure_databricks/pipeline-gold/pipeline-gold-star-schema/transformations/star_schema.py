@@ -23,6 +23,7 @@ Source:  Silver table   (rides_enriched)
          Bronze tables  (map_provinces, map_ride_statuses, map_cancellation_reasons,
                          map_ride_options, map_payment_methods)
 Target:  Gold tables    (dim_*, fact_rides)
+
 """
 
 from pyspark import pipelines as dp

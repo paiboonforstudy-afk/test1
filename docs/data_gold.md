@@ -80,7 +80,7 @@ The Gold layer contains the star schema used for reporting and analysis. It is b
 |---|---|---|
 | province_id | STRING | Primary key — ISO 3166-2 code (e.g. TH-10 for Bangkok) |
 | province_name | STRING | English name of the province |
-| loaded_at | TIMESTAMP | Timestamp when this row was loaded from the Bronze layer |
+| loaded_at | TIMESTAMP | Timestamp when this row was loaded into the Bronze layer |
 
 ---
 
@@ -94,7 +94,7 @@ The Gold layer contains the star schema used for reporting and analysis. It is b
 |---|---|---|
 | ride_status_id | INTEGER | Primary key — unique identifier for the status |
 | ride_status | STRING | Status label: Completed or Cancelled |
-| loaded_at | TIMESTAMP | Timestamp when this row was loaded from the Bronze layer |
+| loaded_at | TIMESTAMP | Timestamp when this row was loaded into the Bronze layer |
 
 ---
 
@@ -109,7 +109,7 @@ The Gold layer contains the star schema used for reporting and analysis. It is b
 | cancellation_reason_id | INTEGER | Primary key — unique identifier for the reason |
 | initiator | STRING | Party responsible: Driver, Passenger, or System (null for completed rides) |
 | cancellation_reason | STRING | Description of why the ride was cancelled (null for completed rides) |
-| loaded_at | TIMESTAMP | Timestamp when this row was loaded from the Bronze layer |
+| loaded_at | TIMESTAMP | Timestamp when this row was loaded into the Bronze layer |
 
 ---
 
@@ -117,7 +117,7 @@ The Gold layer contains the star schema used for reporting and analysis. It is b
 
 **Source:** `bronze.map_ride_options`  
 **SCD Type:** 2 (full history — tracks changes to `ride_option_name`, `is_active`, `retired_at`)  
-**Purpose:** Reference table of ride options with full change history. Old rides always link back to the ride option version that was active at the time of booking. Additional SCD Type 2 columns (`__START_AT`, `__END_AT`, `__CURRENT`) are added automatically by Delta Live Tables.
+**Purpose:** Reference table of ride options with full change history. Old rides always link back to the ride option version that was active at the time of booking. Additional SCD Type 2 columns (`__START_AT`, `__END_AT`) are added automatically by Delta Live Tables.
 
 | Column Name | Data Type | Description |
 |---|---|---|
@@ -131,6 +131,8 @@ The Gold layer contains the star schema used for reporting and analysis. It is b
 | is_active | BOOLEAN | Whether this ride option is currently available |
 | retired_at | STRING | Date the option was retired (null if still active) |
 | loaded_at | TIMESTAMP | Timestamp when this version of the row was loaded |
+| __START_AT | TIMESTAMP | Timestamp when this version became active (added by Delta Live Tables) |
+| __END_AT | TIMESTAMP | Timestamp when this version was superseded (null if current) |
 
 ---
 
@@ -138,7 +140,7 @@ The Gold layer contains the star schema used for reporting and analysis. It is b
 
 **Source:** `bronze.map_payment_methods`  
 **SCD Type:** 2 (full history — tracks changes to `payment_method`, `is_active`, `retired_at`)  
-**Purpose:** Reference table of payment methods with full change history. Old rides always link back to the payment method version that was active at the time of booking. Additional SCD Type 2 columns (`__START_AT`, `__END_AT`, `__CURRENT`) are added automatically by Delta Live Tables.
+**Purpose:** Reference table of payment methods with full change history. Old rides always link back to the payment method version that was active at the time of booking. Additional SCD Type 2 columns (`__START_AT`, `__END_AT`) are added automatically by Delta Live Tables.
 
 | Column Name | Data Type | Description |
 |---|---|---|
@@ -149,6 +151,8 @@ The Gold layer contains the star schema used for reporting and analysis. It is b
 | is_active | BOOLEAN | Whether this payment method is currently accepted |
 | retired_at | STRING | Date the method was retired (null if still active) |
 | loaded_at | TIMESTAMP | Timestamp when this version of the row was loaded |
+| __START_AT | TIMESTAMP | Timestamp when this version became active (added by Delta Live Tables) |
+| __END_AT | TIMESTAMP | Timestamp when this version was superseded (null if current) |
 
 ---
 

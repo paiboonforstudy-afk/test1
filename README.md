@@ -64,13 +64,13 @@ All three flows converge in **Azure Databricks** where data is processed through
 
 **Step 1 — Generate pools (`generate_pools.py`)**
 
-Before any rides can be generated, a pool of drivers and customers must be created. `generate_pools.py` pre-generates 500 unique drivers and 5,000 unique customers and saves them to files. The generator reuses these pools across runs so that the same people appear in multiple rides, simulating real repeat users and drivers.
+Before any rides can be generated, a pool of drivers and customers must be created. `generate_pools.py` pre-generates a configurable number of unique drivers and customers and saves them to files. The generator reuses these pools across runs so that the same people appear in multiple rides, simulating real repeat users and drivers.
 
 **Step 2 — Generate rides (`data_generator.py`)**
 
 Once the pools are ready, `data_generator.py` generates ride records using real Thai geographic coordinates validated against a self-hosted Nominatim (OpenStreetMap) instance. Two modes are used:
 
-- **`eventhub` mode** — streams live ride records one by one to Azure Event Hubs as JSON. Simulates real-time ride bookings.
+- **`eventhub` mode** — streams live ride records one by one to Azure Event Hubs as JSON. Simulates real-time ride records.
 - **`historical` mode** — generates a batch of rides within a given date range and saves them as CSV or JSON files locally. Used to backfill historical data.
 
 After historical files are generated, `upload_historical.py` uploads them to Azure Data Lake Storage Gen2, where they are picked up by the Bronze ingestion pipeline.
@@ -106,8 +106,6 @@ Province, ride option, and payment method reference files are stored in the repo
 | Completion rate | 80% | 20% of rides are cancelled |
 | Surge hours | 7–9 AM, 5–8 PM | Multiplier 1.2x–1.5x |
 | Tip chance | 20% | 5–20% of subtotal |
-| Driver pool | 500 drivers | Reused across rides to simulate real drivers |
-| Customer pool | 5,000 customers | Reused to simulate repeat users |
 
 ### Ride option distance suitability
 

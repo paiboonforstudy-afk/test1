@@ -190,4 +190,4 @@ See [setup.md](docs/setup.md) for step-by-step instructions to clone the reposit
 
 ## 📚 References
 
-See [REFERENCES.md](REFERENCES.md) for all external documentation and resources used in this project.
+See [REFERENCES.md](docs/REFERENCES.md) for all external documentation and resources used in this project.

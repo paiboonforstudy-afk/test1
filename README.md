@@ -17,6 +17,7 @@ I have been interested in data engineering for some time. In my previous work, I
 To better understand how modern data platforms automate these processes, I wanted to gain hands-on experience with the tools, architectures, and workflows used in production environments. As a result, I built this project to design and implement an end-to-end data pipeline that moves raw data through ingestion, transformation, and visualization, delivering insights through an interactive dashboard.
 
 I designed this project around two real-world pipeline scenarios:
+
 Scenario 1: Real-time ingestion: Rides are streamed live to Azure Event Hubs, simulating a production system where data must be captured and processed continuously as it arrives.
 
 Scenario 2: System migration: The business has historical ride data from a previous system that must be migrated into the new pipeline.

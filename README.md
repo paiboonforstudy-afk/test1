@@ -17,16 +17,6 @@ To better understand how modern data platforms automate these processes, I wante
 
 ## 📋 Table of Contents
 
-- [Architecture](#-architecture)
-- [Dashboard](#-dashboard)
-- [Data Generator](#-data-generator)
-- [Data Pipeline](#-data-pipeline--bronze--silver--gold)
-- [Data Structure](#-data-structure)
-- [Project Structure](#-project-structure)
-- [Skills Demonstrated](#-skills-demonstrated)
-- [Setup](#-setup)
-- [References](#-references)
-
 ---
 
 ## ⚙️ Data Generator
@@ -55,29 +45,33 @@ Province, ride option, and payment method reference files are stored in the repo
 
 ---
 
-## 🔄 Data Pipeline Architcture
+## 🔄 Data Pipeline Architecture
 
-![Data Pipeline Architcture](docs/images/pipeline_architecture.png)
+![Data Pipeline Architecture](docs/images/pipeline_architecture.png)
+
+The data architecture for this project follows the Medallion Architecture with Bronze, Silver, and Gold layers.
 
 ### 🥉 Bronze — Raw Ingestion
 
-| Script | Source | Target | Description |
-|---|---|---|---|
-| `ingest_events.py` | Azure Event Hub | `bronze.eh_rides` | Real-time ride records via Kafka |
-| `ingest_historical.py` | ADLS CSV/JSON | `bronze.historical_rides` | Batch rides with manifest-based deduplication |
-| `ingest_mapping.py` | ADLS JSON | `bronze.map_*` | Provinces, ride options, payment methods |
+- **`ingest_events.py`** connects to Azure Event Hubs via Kafka and stores each message as a raw JSON string in `eh_rides` — parsing happens downstream in Silver.
+- **`ingest_historical.py`** creates a `historical_rides_manifest` table to track every loaded file by path and file size, so only new or replaced files are ever loaded.
+- **`ingest_mapping.py`** detects changes by hashing each row's content with SHA-256 and comparing it against the last known version in the target table — only new or changed rows are appended.
 
 ### 🥈 Silver — Enrichment & Privacy
 
-| Script | Source | Target | Transformations |
-|---|---|---|---|
-| `rides_enriched.py` | `bronze.eh_rides` + `bronze.historical_rides` | `silver.rides_enriched` | Cast timestamps · Hash PII with SHA-256 |
+- **`rides_enriched.py`** merges `eh_rides` and `historical_rides` into a single unified table, casts timestamp strings to proper `TIMESTAMP` types, and replaces 7 PII fields (names, emails, phones, license numbers) with SHA-256 hashes.
 
-**PII fields hashed:** `booker_name`, `booker_email`, `booker_phone`, `driver_name`, `driver_phone`, `driver_license`, `vehicle_license_plate`
+> There is no data cleansing in this layer because the data generator always produces clean, well-formed records. In a real-world pipeline this is where null handling, deduplication, and format validation would live.
 
 ### 🥇 Gold — Star Schema
 
 ![Star Schema](docs/images/star_schema.png)
+
+- **`star_schema.py`** builds the full star schema from `rides_enriched` and the bronze mapping tables.
+- **`dim_booker`, `dim_driver`, `dim_vehicle`** are SCD Type 1 — always reflects the latest value, no history kept.
+- **`dim_ride_option`, `dim_payment_method`** are SCD Type 2 — full history is kept so old rides always link to the correct version at the time of booking.
+- **`dim_province`, `dim_ride_status`, `dim_cancellation_reason`** are static reference tables loaded directly from bronze.
+- **`fact_rides`** stores one row per ride with all foreign keys, timestamps, fare breakdown, distance, duration, and ratings.
 
 ---
 

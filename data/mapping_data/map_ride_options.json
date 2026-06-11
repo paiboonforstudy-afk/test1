@@ -18,8 +18,8 @@
     "base_rate": 55.00,
     "per_km": 6.50,
     "per_minute": 2.00,
-    "is_active": true,
-    "retired_at": null
+    "is_active": false,
+    "retired_at": "06-11-2026"
   },
   {
     "ride_option_id": 3,

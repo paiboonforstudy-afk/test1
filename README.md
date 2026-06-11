@@ -96,7 +96,7 @@ The data architecture for this project follows the Medallion Architecture with B
 
 **Step 1 — Generate pools (`generate_pools.py`)**
 
-Before any rides can be generated, a pool of drivers and customers must be created. `generate_pools.py` pre-generates a configurable number of unique drivers and customers and saves them to files. The generator reuses these pools across runs so that the same people appear in multiple rides, simulating real repeat users and drivers.
+Before any rides can be generated, a pool of drivers and customers must be created. `generate_pools.py` generates a configurable number of unique drivers and customers and saves them to files. The generator reuses these pools across runs so that the same people appear in multiple rides, simulating real repeat users and drivers.
 
 **Step 2 — Generate rides (`data_generator.py`)**
 
@@ -121,16 +121,16 @@ See [commands.md](docs/commands.md) for the full list of commands.
 ride-hailing-project/
 ├── azure_databricks/                                       # Azure Databricks pipeline notebooks
 │   ├── pipeline-bronze/
-│   │   ├── ingest_historical.py                               # Incremental batch load for historical ride files
-│   │   ├── ingest_mapping.py                                  # Change-detected append for mapping tables
+│   │   ├── ingest_historical.py                            # Incremental batch load for historical ride files
+│   │   ├── ingest_mapping.py                               # Change-detected append for mapping tables
 │   │   └── pipeline-bronze-ingestion/transformations/
-│   │       └── ingest_events.py                               # DLT streaming append from Azure Event Hubs
+│   │       └── ingest_events.py                            # DLT streaming append from Azure Event Hubs
 │   ├── pipeline-silver/
 │   │   └── pipeline-silver-enriched/transformations/
-│   │       └── rides_enriched.py                              # Merge, cast timestamps, hash PII
+│   │       └── rides_enriched.py                           # Merge, cast timestamps, hash PII
 │   └── pipeline-gold/
 │       └── pipeline-gold-star-schema/transformations/
-│           └── star_schema.py                                 # Build star schema (dim_* + fact_rides)
+│           └── star_schema.py                              # Build star schema (dim_* + fact_rides)
 ├── generator/                     # Data generation logic
 │   ├── core.py                    # Ride record simulation
 │   ├── geocoding.py               # Nominatim reverse geocoding
@@ -151,7 +151,7 @@ ride-hailing-project/
 │   └── powerbi-dashboard.pbix     # Power BI dashboard
 ├── docs/
 │   ├── draw.io/                   # draw.io source files for architecture diagrams
-│   ├── images/                    # Exported architecture and dashboard screenshots
+│   ├── images/                    # Architecture and dashboard images
 │   ├── data_sources.md            # Data dictionary - Sources layer
 │   ├── data_bronze.md             # Data dictionary - Bronze layer
 │   ├── data_silver.md             # Data dictionary - Silver layer
@@ -161,9 +161,9 @@ ride-hailing-project/
 │   └── setup.md                   # Azure and local setup instructions
 ├── .github/workflows/
 │   └── sync_mapping.yml           # GitHub Actions — upload mapping JSON to ADLS
-├── data_generator.py              # CLI entry point for ride generation
+├── data_generator.py              # Run the data generator
 ├── upload_historical.py           # Upload historical files to ADLS
-├── generate_pools.py              # Pre-generate driver and customer pools
+├── generate_pools.py              # Generate driver and customer pools
 ├── docker-compose.yaml            # Nominatim container for geocoding
 ├── .env.example                   # Required environment variables
 ├── REFERENCES.md                  # External documentation and resources

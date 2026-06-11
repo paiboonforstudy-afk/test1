@@ -74,7 +74,7 @@ The Gold layer contains the star schema used for reporting and analysis. It is b
 
 **Source:** `bronze.map_provinces`  
 **SCD Type:** Static (full refresh, no history tracking)  
-**Purpose:** Reference list of all 77 Thai provinces. Used for both pickup and dropoff location lookups in `fact_rides`.
+**Purpose:** Reference table of all 77 Thai provinces. Used for both pickup and dropoff location lookups in `fact_rides`.
 
 | Column Name | Data Type | Description |
 |---|---|---|
@@ -88,7 +88,7 @@ The Gold layer contains the star schema used for reporting and analysis. It is b
 
 **Source:** `bronze.map_ride_statuses`  
 **SCD Type:** Static (full refresh, no history tracking)  
-**Purpose:** Reference list of ride completion statuses.
+**Purpose:** Reference table of ride completion statuses.
 
 | Column Name | Data Type | Description |
 |---|---|---|
@@ -102,7 +102,7 @@ The Gold layer contains the star schema used for reporting and analysis. It is b
 
 **Source:** `bronze.map_cancellation_reasons`  
 **SCD Type:** Static (full refresh, no history tracking)  
-**Purpose:** Reference list of cancellation reasons and the responsible party. `cancellation_reason_id = 1` represents completed rides (initiator and reason are null).
+**Purpose:** Reference table of cancellation reasons and the responsible party. `cancellation_reason_id = 1` represents completed rides (initiator and reason are null).
 
 | Column Name | Data Type | Description |
 |---|---|---|
@@ -117,7 +117,7 @@ The Gold layer contains the star schema used for reporting and analysis. It is b
 
 **Source:** `bronze.map_ride_options`  
 **SCD Type:** 2 (full history — tracks changes to `ride_option_name`, `is_active`, `retired_at`)  
-**Purpose:** Reference list of ride options with full change history. Old rides always link back to the ride option version that was active at the time of booking. Additional SCD Type 2 columns (`__START_AT`, `__END_AT`, `__CURRENT`) are added automatically by Delta Live Tables.
+**Purpose:** Reference table of ride options with full change history. Old rides always link back to the ride option version that was active at the time of booking. Additional SCD Type 2 columns (`__START_AT`, `__END_AT`, `__CURRENT`) are added automatically by Delta Live Tables.
 
 | Column Name | Data Type | Description |
 |---|---|---|
@@ -125,7 +125,7 @@ The Gold layer contains the star schema used for reporting and analysis. It is b
 | ride_option_name | STRING | Display name (e.g. Economy, Premium, Van) |
 | vehicle_class | STRING | Vehicle category (e.g. Sedan, SUV, Motorcycle) |
 | passenger_capacity | INTEGER | Maximum number of passengers |
-| base_rate | DOUBLE | Fixed starting fare in Thai Baht |
+| base_rate | DOUBLE | Fixed base fare in Thai Baht |
 | per_km | DOUBLE | Fare per kilometre in Thai Baht |
 | per_minute | DOUBLE | Fare per minute in Thai Baht |
 | is_active | BOOLEAN | Whether this ride option is currently available |
@@ -138,7 +138,7 @@ The Gold layer contains the star schema used for reporting and analysis. It is b
 
 **Source:** `bronze.map_payment_methods`  
 **SCD Type:** 2 (full history — tracks changes to `payment_method`, `is_active`, `retired_at`)  
-**Purpose:** Reference list of payment methods with full change history. Old rides always link back to the payment method version that was active at the time of booking. Additional SCD Type 2 columns (`__START_AT`, `__END_AT`, `__CURRENT`) are added automatically by Delta Live Tables.
+**Purpose:** Reference table of payment methods with full change history. Old rides always link back to the payment method version that was active at the time of booking. Additional SCD Type 2 columns (`__START_AT`, `__END_AT`, `__CURRENT`) are added automatically by Delta Live Tables.
 
 | Column Name | Data Type | Description |
 |---|---|---|
@@ -180,10 +180,10 @@ The Gold layer contains the star schema used for reporting and analysis. It is b
 | pickup_longitude | DOUBLE | Longitude of the pickup point |
 | dropoff_latitude | DOUBLE | Latitude of the dropoff point |
 | dropoff_longitude | DOUBLE | Longitude of the dropoff point |
-| travel_distance_km | DOUBLE | Actual travel distance in kilometres |
+| travel_distance_km | DOUBLE | Trip distance in kilometres |
 | duration_minutes | INTEGER | Trip duration in minutes |
 | passenger_count | INTEGER | Number of passengers on the ride |
-| base_fare | DOUBLE | Fixed starting fare in Thai Baht |
+| base_fare | DOUBLE | Fixed base fare in Thai Baht |
 | distance_fare | DOUBLE | Fare component based on distance |
 | time_fare | DOUBLE | Fare component based on duration |
 | surge_multiplier | DOUBLE | Surge pricing multiplier applied (1.0 = no surge) |

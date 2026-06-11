@@ -1,6 +1,6 @@
 # Bronze Layer
 
-The Bronze layer is the first landing zone for all incoming data. Ride records (`eh_rides`, `historical_rides`) are stored without modification. Mapping tables (`map_*`) have a `loaded_at` timestamp added on ingestion, and only new or changed rows are appended. All tables are stored as Delta tables in the `ride_hailing.bronze` schema.
+The Bronze layer ingests all incoming data. Ride records (`eh_rides`, `historical_rides`) are stored without modification. Mapping tables (`map_*`) have a `loaded_at` timestamp added on ingestion, and only new or changed rows are appended. All tables are stored as Delta tables in the `ride_hailing.bronze` schema.
 
 ---
 
@@ -20,8 +20,8 @@ The Bronze layer is the first landing zone for all incoming data. Ride records (
 ### eh_rides
 
 **Source:** Azure Event Hub (real-time stream via Kafka)  
-**Load method:** Delta Live Tables streaming append  
-**Purpose:** Captures live ride records as they are sent by the data generator. Each row is one Kafka message. The ride payload is stored as a raw JSON string in the `records` column and parsed downstream in the Silver layer.
+**Load method:** Streaming append (Delta Live Tables)  
+**Purpose:** Landing table for real-time ride events. Each row represents one Kafka message. The ride payload is stored as a raw JSON string in the `records` column and parsed downstream in the Silver layer.
 
 | Column Name | Data Type | Description |
 |---|---|---|
@@ -39,9 +39,9 @@ The Bronze layer is the first landing zone for all incoming data. Ride records (
 
 ### historical_rides
 
-**Source:** Azure Data Lake Storage Gen2 — CSV and JSON files  
-**Load method:** Manifest-based incremental batch append  
-**Purpose:** Stores historical ride records uploaded as flat files. Only new or replaced files are loaded each run, tracked by the manifest table. Raw field types are preserved as-is from the source files.
+**Source:** Azure Data Lake Storage Gen2 (CSV and JSON files)  
+**Load method:** Incremental batch load  
+**Purpose:** Stores historical ride records uploaded as files. Only new or replaced files are loaded each run, tracked by the `historical_rides_manifest`.
 
 | Column Name | Data Type | Description |
 |---|---|---|
@@ -57,10 +57,10 @@ The Bronze layer is the first landing zone for all incoming data. Ride records (
 | booking_timestamp | STRING | Timestamp when the ride was booked (raw string) |
 | pickup_latitude | DOUBLE | Latitude of the pickup point |
 | pickup_longitude | DOUBLE | Longitude of the pickup point |
-| pickup_address | STRING | Human-readable pickup address |
+| pickup_address | STRING | Full pickup address |
 | dropoff_latitude | DOUBLE | Latitude of the dropoff point |
 | dropoff_longitude | DOUBLE | Longitude of the dropoff point |
-| dropoff_address | STRING | Human-readable dropoff address |
+| dropoff_address | STRING | Full dropoff address |
 | booker_name | STRING | Full name of the passenger (PII — raw) |
 | booker_email | STRING | Email address of the passenger (PII — raw) |
 | booker_phone | STRING | Phone number of the passenger (PII — raw) |
@@ -69,14 +69,14 @@ The Bronze layer is the first landing zone for all incoming data. Ride records (
 | driver_license | STRING | Driver's license number (PII — raw) |
 | vehicle_license_plate | STRING | Vehicle license plate (PII — raw) |
 | cancellation_reason_id | INTEGER | Foreign key to map_cancellation_reasons (null if completed) |
-| travel_distance_km | DOUBLE | Actual travel distance in kilometres |
+| travel_distance_km | DOUBLE | Trip distance in kilometres |
 | duration_minutes | INTEGER | Trip duration in minutes |
 | passenger_count | INTEGER | Number of passengers on the ride |
 | pickup_timestamp | STRING | Timestamp when the ride was picked up (raw string) |
 | dropoff_timestamp | STRING | Timestamp when the ride was dropped off (raw string) |
 | driver_rating | DOUBLE | Driver's average rating (3.5–5.0) |
 | rating | INTEGER | Passenger's rating for this ride (1–5) |
-| base_fare | DOUBLE | Fixed starting fare in Thai Baht |
+| base_fare | DOUBLE | Fixed base fare in Thai Baht |
 | distance_fare | DOUBLE | Fare component based on distance |
 | time_fare | DOUBLE | Fare component based on duration |
 | surge_multiplier | DOUBLE | Surge pricing multiplier applied (1.0 = no surge) |
@@ -88,12 +88,12 @@ The Bronze layer is the first landing zone for all incoming data. Ride records (
 
 ### historical_rides_manifest
 
-**Purpose:** Tracks which files have already been loaded into `historical_rides`. Prevents duplicate ingestion when the same file path is reprocessed. A file is considered changed if its size differs from the recorded value.
+**Purpose:** Audit table that tracks every file loaded into `historical_rides`. A file is considered changed if its size differs from the recorded value, and only new or changed files are loaded each run.
 
 | Column Name | Data Type | Description |
 |---|---|---|
 | file_path | STRING | Full ADLS path to the source file |
-| file_name | STRING | File name only (e.g. rides_20260101.csv) |
+| file_name | STRING | File name only (e.g. historical_20260101_20260201.csv) |
 | file_size | LONG | File size in bytes at the time of load |
 | record_count | LONG | Number of records loaded from this file |
 | loaded_at | TIMESTAMP | Timestamp when this file was processed |
@@ -103,8 +103,8 @@ The Bronze layer is the first landing zone for all incoming data. Ride records (
 ### map_provinces
 
 **Source:** Azure Data Lake Storage Gen2 — `map_provinces.json`  
-**Load method:** Change-detected append (rows written only if content changed)  
-**Purpose:** Reference list of all 77 Thai provinces with their ISO 3166-2 identifiers.
+**Load method:** Incremental append (change-detected)  
+**Purpose:** Reference table of all 77 Thai provinces with their ISO 3166-2 identifiers.
 
 | Column Name | Data Type | Description |
 |---|---|---|
@@ -117,8 +117,8 @@ The Bronze layer is the first landing zone for all incoming data. Ride records (
 ### map_ride_options
 
 **Source:** Azure Data Lake Storage Gen2 — `map_ride_options.json`  
-**Load method:** Change-detected append (rows written only if content changed)  
-**Purpose:** Reference list of available ride options with their pricing rates and vehicle details. History is preserved — if a ride option is updated, the old row stays and a new row is appended with the new values.
+**Load method:** Incremental append (change-detected)  
+**Purpose:** Reference table of available ride options with their pricing rates and vehicle details. History is preserved - if a ride option is updated, the old row stays and a new row is appended with the new values.
 
 | Column Name | Data Type | Description |
 |---|---|---|
@@ -126,7 +126,7 @@ The Bronze layer is the first landing zone for all incoming data. Ride records (
 | ride_option_name | STRING | Display name (e.g. Economy, Premium, Van) |
 | vehicle_class | STRING | Vehicle category (e.g. Sedan, SUV, Motorcycle) |
 | passenger_capacity | INTEGER | Maximum number of passengers |
-| base_rate | DOUBLE | Fixed starting fare in Thai Baht |
+| base_rate | DOUBLE | Fixed base fare in Thai Baht |
 | per_km | DOUBLE | Fare per kilometre in Thai Baht |
 | per_minute | DOUBLE | Fare per minute in Thai Baht |
 | is_active | BOOLEAN | Whether this ride option is currently available |
@@ -138,8 +138,8 @@ The Bronze layer is the first landing zone for all incoming data. Ride records (
 ### map_payment_methods
 
 **Source:** Azure Data Lake Storage Gen2 — `map_payment_methods.json`  
-**Load method:** Change-detected append (rows written only if content changed)  
-**Purpose:** Reference list of accepted payment methods. History is preserved across updates.
+**Load method:** Incremental append (change-detected)  
+**Purpose:** Reference table of accepted payment methods. History is preserved across updates.
 
 | Column Name | Data Type | Description |
 |---|---|---|
@@ -156,8 +156,8 @@ The Bronze layer is the first landing zone for all incoming data. Ride records (
 ### map_ride_statuses
 
 **Source:** Azure Data Lake Storage Gen2 — `map_ride_statuses.json`  
-**Load method:** Change-detected append (rows written only if content changed)  
-**Purpose:** Reference list of possible ride statuses (Completed or Cancelled).
+**Load method:** Incremental append (change-detected)  
+**Purpose:** Reference table of possible ride statuses (Completed or Cancelled).
 
 | Column Name | Data Type | Description |
 |---|---|---|
@@ -170,8 +170,8 @@ The Bronze layer is the first landing zone for all incoming data. Ride records (
 ### map_cancellation_reasons
 
 **Source:** Azure Data Lake Storage Gen2 — `map_cancellation_reasons.json`  
-**Load method:** Change-detected append (rows written only if content changed)  
-**Purpose:** Reference list of cancellation reasons with the responsible party. Row 1 (`cancellation_reason_id = 1`) represents a completed ride and has null values for initiator and reason.
+**Load method:** Incremental append (change-detected)  
+**Purpose:** Reference table of cancellation reasons with the responsible party. Row 1 (`cancellation_reason_id = 1`) represents a completed ride and has null values for initiator and reason.
 
 | Column Name | Data Type | Description |
 |---|---|---|

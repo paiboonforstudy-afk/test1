@@ -32,10 +32,10 @@ The Silver layer combines and cleans data from the Bronze layer. Timestamps are 
 | booking_timestamp | TIMESTAMP | Timestamp when the ride was booked |
 | pickup_latitude | DOUBLE | Latitude of the pickup point |
 | pickup_longitude | DOUBLE | Longitude of the pickup point |
-| pickup_address | STRING | Human-readable pickup address |
+| pickup_address | STRING | Full pickup address |
 | dropoff_latitude | DOUBLE | Latitude of the dropoff point |
 | dropoff_longitude | DOUBLE | Longitude of the dropoff point |
-| dropoff_address | STRING | Human-readable dropoff address |
+| dropoff_address | STRING | Full dropoff address |
 | booker_name | STRING | SHA-256 hash of the passenger's full name |
 | booker_email | STRING | SHA-256 hash of the passenger's email address |
 | booker_phone | STRING | SHA-256 hash of the passenger's phone number |
@@ -44,14 +44,14 @@ The Silver layer combines and cleans data from the Bronze layer. Timestamps are 
 | driver_license | STRING | SHA-256 hash of the driver's license number |
 | vehicle_license_plate | STRING | SHA-256 hash of the vehicle's license plate |
 | cancellation_reason_id | INTEGER | Foreign key to bronze.map_cancellation_reasons (null if completed) |
-| travel_distance_km | DOUBLE | Actual travel distance in kilometres |
+| travel_distance_km | DOUBLE | Trip distance in kilometres |
 | duration_minutes | INTEGER | Trip duration in minutes |
 | passenger_count | INTEGER | Number of passengers on the ride |
 | pickup_timestamp | TIMESTAMP | Timestamp when the ride was picked up |
 | dropoff_timestamp | TIMESTAMP | Timestamp when the ride was dropped off |
 | driver_rating | DOUBLE | Driver's average rating (3.5–5.0) |
 | rating | INTEGER | Passenger's rating for this ride (1–5) |
-| base_fare | DOUBLE | Fixed starting fare in Thai Baht |
+| base_fare | DOUBLE | Fixed base fare in Thai Baht |
 | distance_fare | DOUBLE | Fare component based on distance |
 | time_fare | DOUBLE | Fare component based on duration |
 | surge_multiplier | DOUBLE | Surge pricing multiplier applied (1.0 = no surge) |

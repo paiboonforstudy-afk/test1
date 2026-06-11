@@ -1,3 +1,51 @@
+## Azure Setup
+
+**1. Create a Resource Group**
+
+Create a single resource group to hold all project resources.
+
+- Go to the [Azure Portal](https://portal.azure.com) → **Resource groups** → **Create**
+- Choose a subscription, region, and name (e.g. `rg-ride-hailing`)
+
+---
+
+**2. Create Azure Data Lake Storage Gen2**
+
+Used to store historical ride files and mapping data.
+
+- Go to **Storage accounts** → **Create**
+- Select the resource group created above
+- Under **Advanced**, enable **Hierarchical namespace** (this enables ADLS Gen2)
+- Once created, go to the storage account → **Containers** → create the following containers:
+  - `historical-data` — for historical ride CSV/JSON files
+  - `mapping-data` — for province, ride option, and payment method JSON files
+
+---
+
+**3. Create Azure Event Hubs**
+
+Used to receive real-time ride events from the data generator.
+
+- Go to **Event Hubs** → **Create** → create a **Namespace**
+- Select the resource group and choose a pricing tier (Basic or Standard)
+- Inside the namespace, go to **Event Hubs** → **+ Event Hub** → create one named `rides`
+
+---
+
+**4. Create Azure Databricks**
+
+Used to run the Bronze, Silver, and Gold pipeline notebooks.
+
+- Go to **Azure Databricks** → **Create**
+- Select the resource group and a pricing tier (Standard or Premium)
+- Once deployed, click **Launch Workspace**
+- Inside the workspace, create a cluster to run the pipelines
+- Connect the Databricks workspace to the ADLS Gen2 storage account and Event Hubs using credentials stored as Databricks secrets or environment variables
+
+---
+
+## Local Setup
+
 **1. Clone the repository**
 ```bash
 git clone <repo-url>

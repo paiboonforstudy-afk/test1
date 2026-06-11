@@ -35,10 +35,10 @@ The Sources layer contains raw data before it enters the Bronze layer. Data orig
 | booking_timestamp | STRING | Timestamp when the ride was booked (ISO 8601 string) |
 | pickup_latitude | DOUBLE | Latitude of the pickup point |
 | pickup_longitude | DOUBLE | Longitude of the pickup point |
-| pickup_address | STRING | Human-readable pickup address (Thai) |
+| pickup_address | STRING | Full pickup address (Thai) |
 | dropoff_latitude | DOUBLE | Latitude of the dropoff point |
 | dropoff_longitude | DOUBLE | Longitude of the dropoff point |
-| dropoff_address | STRING | Human-readable dropoff address (Thai) |
+| dropoff_address | STRING | Full dropoff address (Thai) |
 | booker_name | STRING | Full name of the passenger (PII — raw) |
 | booker_email | STRING | Email address of the passenger (PII — raw) |
 | booker_phone | STRING | Phone number of the passenger (PII — raw) |
@@ -47,14 +47,14 @@ The Sources layer contains raw data before it enters the Bronze layer. Data orig
 | driver_license | STRING | Driver's license number (PII — raw) |
 | vehicle_license_plate | STRING | Vehicle license plate (PII — raw) |
 | cancellation_reason_id | INTEGER | References map_cancellation_reasons (null if completed) |
-| travel_distance_km | DOUBLE | Actual travel distance in kilometres |
+| travel_distance_km | DOUBLE | Trip distance in kilometres |
 | duration_minutes | INTEGER | Trip duration in minutes |
 | passenger_count | INTEGER | Number of passengers on the ride |
 | pickup_timestamp | STRING | Timestamp when the ride was picked up (ISO 8601 string) |
 | dropoff_timestamp | STRING | Timestamp when the ride was dropped off (ISO 8601 string) |
 | driver_rating | DOUBLE | Driver's average rating (3.5–5.0) |
 | rating | INTEGER | Passenger's rating for this ride (1–5) |
-| base_fare | DOUBLE | Fixed starting fare in Thai Baht |
+| base_fare | DOUBLE | Fixed base fare in Thai Baht |
 | distance_fare | DOUBLE | Fare component based on distance |
 | time_fare | DOUBLE | Fare component based on duration |
 | surge_multiplier | DOUBLE | Surge pricing multiplier applied (1.0 = no surge) |
@@ -67,7 +67,7 @@ The Sources layer contains raw data before it enters the Bronze layer. Data orig
 ### map_provinces
 
 **Source:** `data/mapping_data/map_provinces.json`  
-**Purpose:** Reference list of all 77 Thai provinces with their ISO 3166-2 identifiers. Uploaded to Azure Data Lake Storage Gen2 via GitHub Actions.
+**Purpose:** Reference table of all 77 Thai provinces with their ISO 3166-2 identifiers. Uploaded to Azure Data Lake Storage Gen2 via GitHub Actions.
 
 | Column Name | Data Type | Description |
 |---|---|---|
@@ -79,7 +79,7 @@ The Sources layer contains raw data before it enters the Bronze layer. Data orig
 ### map_ride_options
 
 **Source:** `data/mapping_data/map_ride_options.json`  
-**Purpose:** Reference list of available ride options with their pricing rates and vehicle details.
+**Purpose:** Reference table of available ride options with their pricing rates and vehicle details.
 
 | Column Name | Data Type | Description |
 |---|---|---|
@@ -87,7 +87,7 @@ The Sources layer contains raw data before it enters the Bronze layer. Data orig
 | ride_option_name | STRING | Display name (e.g. Economy, Premium, Van) |
 | vehicle_class | STRING | Vehicle category (e.g. Sedan, SUV, Motorcycle) |
 | passenger_capacity | INTEGER | Maximum number of passengers |
-| base_rate | DOUBLE | Fixed starting fare in Thai Baht |
+| base_rate | DOUBLE | Fixed base fare in Thai Baht |
 | per_km | DOUBLE | Fare per kilometre in Thai Baht |
 | per_minute | DOUBLE | Fare per minute in Thai Baht |
 | is_active | BOOLEAN | Whether this ride option is currently available |
@@ -98,7 +98,7 @@ The Sources layer contains raw data before it enters the Bronze layer. Data orig
 ### map_payment_methods
 
 **Source:** `data/mapping_data/map_payment_methods.json`  
-**Purpose:** Reference list of accepted payment methods.
+**Purpose:** Reference table of accepted payment methods.
 
 | Column Name | Data Type | Description |
 |---|---|---|
@@ -114,7 +114,7 @@ The Sources layer contains raw data before it enters the Bronze layer. Data orig
 ### map_ride_statuses
 
 **Source:** `data/mapping_data/map_ride_statuses.json`  
-**Purpose:** Reference list of possible ride statuses.
+**Purpose:** Reference table of possible ride statuses.
 
 | Column Name | Data Type | Description |
 |---|---|---|
@@ -126,7 +126,7 @@ The Sources layer contains raw data before it enters the Bronze layer. Data orig
 ### map_cancellation_reasons
 
 **Source:** `data/mapping_data/map_cancellation_reasons.json`  
-**Purpose:** Reference list of cancellation reasons and the responsible party. `cancellation_reason_id = 1` represents completed rides and has null values for initiator and reason.
+**Purpose:** Reference table of cancellation reasons and the responsible party. `cancellation_reason_id = 1` represents completed rides and has null values for initiator and reason.
 
 | Column Name | Data Type | Description |
 |---|---|---|

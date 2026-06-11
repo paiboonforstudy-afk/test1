@@ -56,6 +56,15 @@ The data architecture for this project follows the Medallion Architecture with B
 - **`dim_province`, `dim_ride_status`, `dim_cancellation_reason`** are static reference tables loaded directly from bronze.
 - **`fact_rides`** stores one row per ride with all foreign keys, timestamps, fare breakdown, distance, duration, and ratings.
 
+## 📖 Data Structure
+
+| Layer | File |
+|---|---|
+| Sources | [data_sources.md](docs/data_sources.md) |
+| Bronze | [data_bronze.md](docs/data_bronze.md) |
+| Silver | [data_silver.md](docs/data_silver.md) |
+| Gold | [data_gold.md](docs/data_gold.md) |
+
 ---
 
 ## 📊 Dashboard

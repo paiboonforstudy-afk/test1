@@ -18,9 +18,9 @@ To better understand how modern data platforms automate these processes, I wante
 
 I designed this project around two real-world pipeline scenarios:
 
-**Scenario 1 — Real-time ingestion:** Rides are streamed live to Azure Event Hubs, simulating a production system where data must be captured and processed continuously as it arrives.
+**Scenario 1 - Real-time ingestion:** Rides data are streamed live to Azure Event Hubs, simulating a production system where data must be captured and processed continuously as it arrives.
 
-**Scenario 2 — System migration:** The business has historical ride data from a previous system that must be migrated into the new pipeline.
+**Scenario 2 - System migration:** The business has historical ride data from a previous system that must be migrated into the new pipeline.
 
 ---
 
@@ -60,10 +60,22 @@ The data architecture for this project follows the Medallion Architecture with B
 
 ## 📊 Dashboard
 
+4-page interactive dashboard built on the Gold layer star schema.
+
+| Page | Business Question |
+|---|---|
+| 📈 **Growth** | Is the business growing sustainably and moving in the right direction?|
+| ❌ **Cancellation & Service Quality** | What factors are driving ride cancellation, and where are service improvements needed? |
+| 🗺️ **Geographic Performance** | Which regions are performing best, and where should future investments or expansion be focused? |
+| 💰 **Ride Option & Revenue** | Which ride option generate the highest revenue, and which require strategic attention? |
+
+> Note: The dashboard data is generated for demonstration purposes and does not represent real-world figures, which is why some visuals may not make sense.
+
 ![Dashboard Growth](docs/images/dashboard_growth.png)
-![Dashboard Cancellation & Service Quality](docs/images/dashboard_geographic.png)
+![Dashboard Cancellation & Service Quality](docs/images/dashboard_cancellation.png)
 ![Dashboard Geographic Performance](docs/images/dashboard_geographic_performance.png)
 ![Dashboard Ride Options](docs/images/dashboard_ride_options.png)
+
 ---
 
 ## ⚙️ Data Generator

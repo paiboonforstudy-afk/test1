@@ -62,15 +62,22 @@ All three flows converge in **Azure Databricks** where data is processed through
 
 ![Data Generator Diagram](docs/images/data_generator.png)
 
-The generator creates realistic ride records using **real Thai geographic coordinates** — not random lat/lon values. It uses a self-hosted **Nominatim** instance (OpenStreetMap) running in Docker to validate that every pickup and dropoff point is on land, inside Thailand, and within the correct province.
+**Step 1 — Generate pools (`generate_pools.py`)**
 
-Three output modes are supported:
+Before any rides can be generated, a pool of drivers and customers must be created. `generate_pools.py` pre-generates 500 unique drivers and 5,000 unique customers and saves them to files. The generator reuses these pools across runs so that the same people appear in multiple rides, simulating real repeat users and drivers.
 
-| Mode | Script | Destination |
-|---|---|---|
-| Real-time stream | `eventhub.py` | Azure Event Hubs (JSON) |
-| Historical batch | `historical.py` → `upload_historical.py` | Azure Data Lake Storage Gen2 (CSV / JSON) |
-| Mapping data | GitHub Actions | Azure Data Lake Storage Gen2 (JSON) |
+**Step 2 — Generate rides (`data_generator.py`)**
+
+Once the pools are ready, `data_generator.py` generates ride records using real Thai geographic coordinates validated against a self-hosted Nominatim (OpenStreetMap) instance. Two modes are used:
+
+- **`eventhub` mode** — streams live ride records one by one to Azure Event Hubs as JSON. Simulates real-time ride bookings.
+- **`historical` mode** — generates a batch of rides within a given date range and saves them as CSV or JSON files locally. Used to backfill historical data.
+
+After historical files are generated, `upload_historical.py` uploads them to Azure Data Lake Storage Gen2, where they are picked up by the Bronze ingestion pipeline.
+
+**Mapping data — GitHub Actions**
+
+Province, ride option, and payment method reference files are stored in the repository under `data/mapping_data/`. A GitHub Actions workflow automatically uploads these JSON files to Azure Data Lake Storage Gen2 whenever they are updated in the repository.
 
 ### How location generation works
 
